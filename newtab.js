@@ -131,9 +131,69 @@ function letterEl(name) {
   return s;
 }
 
-function openEditor(_id) {
-  /* Task 8 */
+const modal = document.getElementById("modal");
+const fieldName = document.getElementById("field-name");
+const fieldUrl = document.getElementById("field-url");
+const modalError = document.getElementById("modal-error");
+const modalTitle = document.getElementById("modal-title");
+let editingId = null; // null means append on save
+
+function openEditor(id) {
+  editingId = id;
+  modalError.classList.add("hidden");
+  fieldUrl.classList.remove("invalid");
+  const chip = shortcuts.find((c) => c.id === id);
+  fieldName.value = chip?.name || "";
+  fieldUrl.value = chip?.url || "";
+  modalTitle.textContent = chip && !isEmptyChip(chip) ? "Edit shortcut" : "New shortcut";
+  modal.classList.remove("hidden");
+  fieldName.focus();
 }
+
+function closeModal() {
+  modal.classList.add("hidden");
+  editingId = null;
+}
+
+async function persist() {
+  await saveWithToast(() => saveShortcuts(shortcuts), toastEl);
+}
+
+async function saveEditor() {
+  const name = fieldName.value.trim();
+  fieldUrl.classList.remove("invalid");
+  modalError.classList.add("hidden");
+  if (!name) {
+    fieldName.focus();
+    return;
+  }
+  let url;
+  try {
+    url = normalizeUrl(fieldUrl.value);
+  } catch {
+    fieldUrl.classList.add("invalid");
+    modalError.classList.remove("hidden");
+    return;
+  }
+  if (editingId) {
+    shortcuts = shortcuts.map((c) => (c.id === editingId ? { ...c, name, url } : c));
+  } else {
+    if (shortcuts.length >= MAX_CHIPS) return;
+    shortcuts = [...shortcuts, { id: newId(), name, url }];
+  }
+  await persist();
+  renderChips();
+  closeModal();
+}
+
+document.getElementById("modal-save").addEventListener("click", saveEditor);
+document.getElementById("modal-cancel").addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+});
 
 async function bootChips() {
   shortcuts = await loadShortcuts();
