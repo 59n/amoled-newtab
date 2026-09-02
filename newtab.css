@@ -108,6 +108,9 @@ input, textarea {
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
   text-align: center;
 }
+.quote-line {
+  position: relative;
+}
 .quote p,
 .quote cite {
   position: relative;
@@ -116,19 +119,23 @@ input, textarea {
 }
 .copy-quote {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
   z-index: 0;
   display: grid;
   place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(214, 205, 188, 0.22);
+  color: rgba(214, 205, 188, 0.28);
   opacity: 0;
   pointer-events: none;
   cursor: pointer;
-  transition: opacity 200ms ease, color 200ms ease, transform 200ms ease;
+  transform: translate(-50%, -50%);
+  transition: opacity 200ms ease, color 200ms ease;
 }
 .copy-quote svg {
   display: block;
@@ -142,7 +149,6 @@ input, textarea {
 }
 .quote.is-near .copy-quote:hover {
   color: rgba(240, 235, 223, 0.72);
-  transform: scale(1.06);
 }
 .copy-tip {
   position: absolute;
