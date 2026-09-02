@@ -6,6 +6,8 @@ html, body {
   overflow: hidden;
   font-family: system-ui, -apple-system, sans-serif;
 }
+html { --page-scale: 1; }
+main { zoom: var(--page-scale); }
 body {
   display: flex;
   align-items: center;
@@ -108,10 +110,15 @@ blockquote {
 .chip { cursor: grab; }
 .chip.add, .chip.empty { cursor: pointer; }
 .chip.dragging { opacity: 0.4; }
-#gear {
+#zoom-controls {
   position: fixed;
   top: 14px;
   right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+#zoom-controls button {
   width: 28px;
   height: 28px;
   border: 1px solid #222;
@@ -120,8 +127,36 @@ blockquote {
   border-radius: 50%;
   cursor: pointer;
   font-size: 14px;
+  line-height: 1;
 }
-#gear:hover { color: #888; border-color: #333; }
+#zoom-controls button:hover { color: #888; border-color: #333; }
+.scale-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  color: #888;
+}
+.scale-row input[type="range"] {
+  flex: 1;
+  accent-color: #666;
+}
+.scale-row button {
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #888;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#scale-label {
+  min-width: 2.6rem;
+  text-align: right;
+  color: #aaa;
+  font-variant-numeric: tabular-nums;
+}
 .hidden { display: none !important; }
 #modal, #overlay {
   position: fixed;

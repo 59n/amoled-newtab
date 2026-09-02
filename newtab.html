@@ -7,7 +7,11 @@
   <link rel="stylesheet" href="newtab.css">
 </head>
 <body>
-  <button id="gear" type="button" aria-label="Shortcuts">⚙</button>
+  <div id="zoom-controls">
+    <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+    <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+    <button id="gear" type="button" aria-label="Shortcuts">⚙</button>
+  </div>
 
   <main>
     <pre id="ascii" aria-label="ASCII art"></pre>
@@ -34,7 +38,15 @@
 
   <div id="overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
     <div class="overlay-card">
-      <h2 id="overlay-title">Shortcuts</h2>
+      <h2 id="overlay-title">Settings</h2>
+      <div class="scale-row">
+        <span>Size</span>
+        <button id="scale-down" type="button" aria-label="Smaller">−</button>
+        <input id="scale-range" type="range" min="70" max="200" step="10" value="100">
+        <button id="scale-up" type="button" aria-label="Bigger">+</button>
+        <span id="scale-label">100%</span>
+      </div>
+      <h2>Shortcuts</h2>
       <ul id="overlay-list"></ul>
       <button id="overlay-add" type="button">+ add</button>
     </div>

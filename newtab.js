@@ -7,6 +7,10 @@ import {
   normalizeUrl,
   loadQuoteCache,
   saveQuoteCache,
+  loadScale,
+  saveScale,
+  clampScale,
+  SCALE_STEP,
 } from "./storage.js";
 import { loadAscii, loadFallbacks, truncateQuote } from "./ascii.js";
 
@@ -341,4 +345,37 @@ async function bootChips() {
   renderChips();
 }
 
+let pageScale = 1;
+const scaleRange = document.getElementById("scale-range");
+const scaleLabel = document.getElementById("scale-label");
+
+function applyScale(n, persist = true) {
+  pageScale = clampScale(n);
+  document.documentElement.style.setProperty("--page-scale", String(pageScale));
+  const pct = Math.round(pageScale * 100);
+  scaleRange.value = String(pct);
+  scaleLabel.textContent = `${pct}%`;
+  if (persist) saveWithToast(() => saveScale(pageScale), toastEl);
+}
+
+document.getElementById("zoom-out").addEventListener("click", () => {
+  applyScale(pageScale - SCALE_STEP);
+});
+document.getElementById("zoom-in").addEventListener("click", () => {
+  applyScale(pageScale + SCALE_STEP);
+});
+document.getElementById("scale-down").addEventListener("click", () => {
+  applyScale(pageScale - SCALE_STEP);
+});
+document.getElementById("scale-up").addEventListener("click", () => {
+  applyScale(pageScale + SCALE_STEP);
+});
+scaleRange.addEventListener("input", () => {
+  applyScale(Number(scaleRange.value) / 100, false);
+});
+scaleRange.addEventListener("change", () => {
+  applyScale(Number(scaleRange.value) / 100);
+});
+
 bootChips();
+loadScale().then((n) => applyScale(n, false));

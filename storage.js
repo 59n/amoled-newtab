@@ -84,6 +84,25 @@ export async function saveShortcuts(list) {
   await setSync("shortcuts", list);
 }
 
+export const MIN_SCALE = 0.7;
+export const MAX_SCALE = 2;
+export const SCALE_STEP = 0.1;
+export const DEFAULT_SCALE = 1;
+
+export function clampScale(n) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return DEFAULT_SCALE;
+  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round(x * 10) / 10));
+}
+
+export async function loadScale() {
+  return clampScale(await getSync("scale"));
+}
+
+export async function saveScale(n) {
+  await setSync("scale", clampScale(n));
+}
+
 export async function loadArtCache() {
   const v = await getLocal("artCache");
   return typeof v === "string" ? v : null;

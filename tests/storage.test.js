@@ -10,6 +10,10 @@ import {
   saveArtCache,
   loadQuoteCache,
   saveQuoteCache,
+  clampScale,
+  loadScale,
+  saveScale,
+  DEFAULT_SCALE,
 } from "../storage.js";
 
 test("defaults are four sites plus three empty slots", () => {
@@ -58,6 +62,20 @@ test("art and quote caches round-trip", async () => {
   assert.equal(await loadArtCache(), "@@@");
   await saveQuoteCache({ text: "hi", author: "x" });
   assert.deepEqual(await loadQuoteCache(), { text: "hi", author: "x" });
+});
+
+test("clampScale keeps zoom between 70% and 200%", () => {
+  assert.equal(clampScale(1), 1);
+  assert.equal(clampScale(0.1), 0.7);
+  assert.equal(clampScale(9), 2);
+  assert.equal(clampScale("nope"), DEFAULT_SCALE);
+});
+
+test("scale persists", async () => {
+  globalThis.localStorage = new MapStorage();
+  assert.equal(await loadScale(), DEFAULT_SCALE);
+  await saveScale(1.4);
+  assert.equal(await loadScale(), 1.4);
 });
 
 test("corrupt localStorage is treated as a cache miss", async () => {
