@@ -8,7 +8,7 @@ class EyesDisplay {
         this.artRows = 28
         this.frameColumns = 9
         this.frameRows = 7
-        this.cacheVersion = "eyes-v19"
+        this.cacheVersion = "eyes-v20"
         this.densityChars = ["\u00b7", "~", "o", "x", "+", "=", "*", "%", "$", "@"]
         this.frameCache = new Map()
         this.blinkFrame = { bright: "", dim: "" }
@@ -173,20 +173,9 @@ class EyesDisplay {
     }
 
     updateGridSize() {
-        const rect = this.element.getBoundingClientRect()
-        const metrics = this.measureCharacter()
-        const charW = Math.max(metrics.width, 0.5)
-        const charH = Math.max(metrics.height, 0.5)
-        const nextColumns = Math.max(32, Math.floor(rect.width / charW) - 1)
-        const maxRows = Math.max(12, Math.floor(rect.height / charH) - 1)
-        const aspectRows = Math.floor(
-            (nextColumns * charW) /
-            ((this.sourceWidth / this.sourceHeight) * charH)
-        )
-
-        this.columns = nextColumns
-        this.rows = maxRows
-        this.artRows = Math.max(12, Math.min(maxRows, aspectRows))
+        this.columns = 88
+        this.rows = 22
+        this.artRows = 22
         this.canvas.width = this.columns
         this.canvas.height = this.artRows
     }

@@ -17,7 +17,7 @@ main {
   display: grid;
   justify-items: center;
   align-content: center;
-  grid-template-rows: 12.5rem 1.15rem 4.1rem auto;
+  grid-template-rows: 22em 1.15rem 4.1rem auto;
   row-gap: 1.1rem;
   width: min(920px, 100%);
   max-width: 920px;
@@ -25,20 +25,23 @@ main {
 }
 .eyes {
   position: relative;
-  width: 32rem;
-  height: 12.5rem;
-  min-width: 32rem;
-  max-width: 32rem;
-  min-height: 12.5rem;
-  max-height: 12.5rem;
+  box-sizing: content-box;
+  width: 88ch;
+  height: 22em;
+  min-width: 88ch;
+  max-width: 88ch;
+  min-height: 22em;
+  max-height: 22em;
   margin: 0;
   padding: 0;
   border: 0;
   background: #000;
   color: #f5efe2;
-  font-size: 0.34rem;
+  font-size: 8px;
   line-height: 1;
   letter-spacing: 0;
+  font-variant-ligatures: none;
+  font-kerning: none;
   overflow: hidden;
   cursor: default;
   flex-shrink: 0;
@@ -51,10 +54,11 @@ main {
   inset: 0;
 }
 .eyes__bg {
-  top: -0.08em;
-  bottom: -0.45em;
+  top: 0;
+  bottom: 0;
   margin: 0;
   padding: 0;
+  overflow: hidden;
   pointer-events: none;
   white-space: pre;
   color: rgba(242, 236, 220, 0.08);
@@ -70,6 +74,9 @@ main {
   padding: 0;
   pointer-events: none;
   white-space: pre;
+  overflow: hidden;
+  font-variant-ligatures: none;
+  font-kerning: none;
 }
 .eyes__region { will-change: transform; }
 .eyes__region--left {
