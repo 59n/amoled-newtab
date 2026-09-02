@@ -16,11 +16,11 @@ body {
   justify-content: center;
 }
 main {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  grid-template-rows: 22em 1.15rem 4.1rem auto;
-  row-gap: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
   width: min(920px, 100%);
   max-width: 920px;
   padding: 2rem 1.25rem 3rem;
@@ -101,7 +101,9 @@ input, textarea {
 }
 .quote {
   width: min(30rem, 72vw);
-  height: 4.1rem;
+  height: 5.8rem;
+  min-height: 5.8rem;
+  max-height: 5.8rem;
   margin: 0;
   overflow: hidden;
   color: rgba(214, 205, 188, 0.7);
