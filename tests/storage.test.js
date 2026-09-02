@@ -60,6 +60,15 @@ test("art and quote caches round-trip", async () => {
   assert.deepEqual(await loadQuoteCache(), { text: "hi", author: "x" });
 });
 
+test("corrupt localStorage is treated as a cache miss", async () => {
+  globalThis.localStorage = new MapStorage();
+  localStorage.setItem("sync:shortcuts", "not-json");
+  localStorage.setItem("local:artCache", "not-json");
+  const shortcuts = await loadShortcuts();
+  assert.equal(shortcuts.length, 7);
+  assert.equal(await loadArtCache(), null);
+});
+
 class MapStorage {
   constructor() { this.m = new Map(); }
   getItem(k) { return this.m.has(k) ? this.m.get(k) : null; }

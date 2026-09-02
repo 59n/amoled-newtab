@@ -32,8 +32,12 @@ async function getSync(key) {
     const o = await chrome.storage.sync.get(key);
     return o[key];
   }
-  const raw = localStorage.getItem("sync:" + key);
-  return raw ? JSON.parse(raw) : undefined;
+  try {
+    const raw = localStorage.getItem("sync:" + key);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 async function setSync(key, val) {
@@ -49,8 +53,12 @@ async function getLocal(key) {
     const o = await chrome.storage.local.get(key);
     return o[key];
   }
-  const raw = localStorage.getItem("local:" + key);
-  return raw ? JSON.parse(raw) : undefined;
+  try {
+    const raw = localStorage.getItem("local:" + key);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 async function setLocal(key, val) {
@@ -64,7 +72,11 @@ async function setLocal(key, val) {
 export async function loadShortcuts() {
   const existing = await getSync("shortcuts");
   if (Array.isArray(existing)) return existing;
-  await setSync("shortcuts", DEFAULT_SHORTCUTS);
+  try {
+    await setSync("shortcuts", DEFAULT_SHORTCUTS);
+  } catch {
+    // persist can fail; still hand the UI defaults
+  }
   return DEFAULT_SHORTCUTS.map((c) => ({ ...c }));
 }
 
