@@ -641,27 +641,23 @@ class EyesDisplay {
             return
         }
 
-        this.swapFrame(
-            this.frameCache.get(frameKey) ?? { bright: "", dim: "" },
-            frameKey,
-            immediate
-        )
-    }
-
-    swapFrame(frame, frameKey, immediate = false) {
-        const nextLayerIndex = immediate ? this.activeLayerIndex : 1 - this.activeLayerIndex
-        const nextLayer = this.layers[nextLayerIndex]
-        const currentLayer = this.layers[this.activeLayerIndex]
-
-        this.setRegionText(nextLayer.dim, frame.dim)
-        this.setRegionText(nextLayer.bright, frame.bright)
-        nextLayer.shell.classList.add("eyes__layer--active")
-
-        if (currentLayer && currentLayer !== nextLayer) {
-            currentLayer.shell.classList.remove("eyes__layer--active")
+        const frame = this.frameCache.get(frameKey)
+        if (!frame || (!frame.bright && !frame.dim)) {
+            return
         }
 
-        this.activeLayerIndex = nextLayerIndex
+        this.swapFrame(frame, frameKey, immediate)
+    }
+
+    swapFrame(frame, frameKey, _immediate = false) {
+        const layer = this.layers[this.activeLayerIndex]
+        if (!layer) {
+            return
+        }
+
+        this.setRegionText(layer.dim, frame.dim)
+        this.setRegionText(layer.bright, frame.bright)
+        layer.shell.classList.add("eyes__layer--active")
         this.lastRenderedFrame = frameKey
     }
 

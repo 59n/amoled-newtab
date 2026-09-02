@@ -94,11 +94,16 @@ function favicon(url) {
 function renderChips() {
   chipsEl.replaceChildren();
   for (const chip of shortcuts) {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = "chip" + (isEmptyChip(chip) ? " empty" : "");
+    const empty = isEmptyChip(chip);
+    const el = document.createElement(empty ? "button" : "a");
+    if (empty) el.type = "button";
+    else {
+      el.href = chip.url;
+      el.rel = "noopener noreferrer";
+    }
+    el.className = "chip" + (empty ? " empty" : "");
     el.dataset.id = chip.id;
-    if (isEmptyChip(chip)) {
+    if (empty) {
       el.setAttribute("aria-label", "Empty shortcut");
     } else {
       const host = favicon(chip.url);
@@ -117,9 +122,17 @@ function renderChips() {
       }
       el.append(chip.name);
     }
-    el.addEventListener("click", () => {
-      if (isEmptyChip(chip)) openEditor(chip.id);
-      else location.assign(chip.url);
+    el.addEventListener("click", (e) => {
+      if (empty) {
+        openEditor(chip.id);
+        return;
+      }
+      if (e.button === 1 || e.metaKey || e.ctrlKey) return;
+    });
+    el.addEventListener("auxclick", (e) => {
+      if (empty || e.button !== 1) return;
+      e.preventDefault();
+      window.open(chip.url, "_blank", "noopener,noreferrer");
     });
     el.draggable = true;
     el.addEventListener("contextmenu", (e) => {

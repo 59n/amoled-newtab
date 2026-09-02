@@ -61,7 +61,6 @@ main {
 .eyes__layer {
   pointer-events: none;
   opacity: 0;
-  transition: opacity 55ms linear;
 }
 .eyes__layer--active { opacity: 1; }
 .eyes__tone {
@@ -101,11 +100,9 @@ input, textarea {
 }
 .quote {
   width: min(30rem, 72vw);
-  height: 5.8rem;
-  min-height: 5.8rem;
-  max-height: 5.8rem;
+  min-height: 4.4rem;
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   color: rgba(214, 205, 188, 0.7);
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
   text-align: center;
