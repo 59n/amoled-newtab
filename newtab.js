@@ -1,4 +1,13 @@
-import { loadQuoteCache, saveQuoteCache } from "./storage.js";
+import {
+  loadShortcuts,
+  saveShortcuts,
+  saveWithToast,
+  isEmptyChip,
+  newId,
+  normalizeUrl,
+  loadQuoteCache,
+  saveQuoteCache,
+} from "./storage.js";
 import { loadAscii, loadFallbacks, truncateQuote } from "./ascii.js";
 
 const clock = document.getElementById("clock");
@@ -59,3 +68,76 @@ async function loadQuote() {
 ascii.addEventListener("click", () => loadAscii(ascii));
 loadAscii(ascii);
 loadQuote();
+
+const chipsEl = document.getElementById("chips");
+const toastEl = document.getElementById("toast");
+const MAX_CHIPS = 8;
+let shortcuts = [];
+
+function favicon(url) {
+  try {
+    return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`;
+  } catch {
+    return "";
+  }
+}
+
+function renderChips() {
+  chipsEl.replaceChildren();
+  for (const chip of shortcuts) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "chip" + (isEmptyChip(chip) ? " empty" : "");
+    el.dataset.id = chip.id;
+    if (isEmptyChip(chip)) {
+      el.setAttribute("aria-label", "Empty shortcut");
+    } else {
+      const host = favicon(chip.url);
+      if (host) {
+        const img = document.createElement("img");
+        img.width = 16;
+        img.height = 16;
+        img.alt = "";
+        img.src = host;
+        img.addEventListener("error", () => {
+          img.replaceWith(letterEl(chip.name));
+        });
+        el.append(img);
+      } else {
+        el.append(letterEl(chip.name));
+      }
+      el.append(chip.name);
+    }
+    el.addEventListener("click", () => {
+      if (isEmptyChip(chip)) openEditor(chip.id);
+      else location.assign(chip.url);
+    });
+    chipsEl.append(el);
+  }
+  if (shortcuts.length < MAX_CHIPS) {
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "chip add";
+    add.textContent = "+ add";
+    add.addEventListener("click", () => openEditor(null));
+    chipsEl.append(add);
+  }
+}
+
+function letterEl(name) {
+  const s = document.createElement("span");
+  s.className = "letter";
+  s.textContent = (name || "?").slice(0, 1).toUpperCase();
+  return s;
+}
+
+function openEditor(_id) {
+  /* Task 8 */
+}
+
+async function bootChips() {
+  shortcuts = await loadShortcuts();
+  renderChips();
+}
+
+bootChips();
