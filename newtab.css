@@ -99,13 +99,64 @@ input, textarea {
   color: rgba(240, 235, 223, 0.88);
 }
 .quote {
+  position: relative;
   width: min(30rem, 72vw);
   min-height: 4.4rem;
   margin: 0;
+  padding-bottom: 1.6rem;
   overflow: visible;
   color: rgba(214, 205, 188, 0.7);
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
   text-align: center;
+}
+.copy-quote {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  padding: 0.2rem 0.55rem;
+  border: 0;
+  background: transparent;
+  color: rgba(214, 205, 188, 0.55);
+  font: 0.62rem/1 system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity 180ms ease;
+}
+.quote.is-near .copy-quote,
+.copy-quote:focus-visible {
+  opacity: 0.85;
+  pointer-events: auto;
+}
+.copy-quote:hover { color: rgba(240, 235, 223, 0.9); }
+.copy-tip {
+  position: absolute;
+  left: 50%;
+  bottom: 1.35rem;
+  transform: translateX(-50%) translateY(8px);
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(240, 235, 223, 0.16);
+  border-radius: 6px;
+  background: #0a0a0a;
+  color: rgba(240, 235, 223, 0.9);
+  font: 0.68rem/1 system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+}
+.copy-tip.is-on {
+  animation: copy-pop 1.15s ease forwards;
+}
+@keyframes copy-pop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.92); }
+  18% { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.04); }
+  32% { transform: translateX(-50%) translateY(0) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.98); }
 }
 .quote p {
   margin: 0;

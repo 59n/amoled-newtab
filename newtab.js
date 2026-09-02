@@ -13,7 +13,7 @@ import {
   SCALE_STEP,
 } from "./storage.js";
 import { loadFallbacks, truncateQuote } from "./ascii.js";
-import { EyesDisplay, pickEyeVariant } from "./eyes-display.js";
+import { EyesDisplay } from "./eyes-display.js";
 
 const clock = document.getElementById("clock");
 const ascii = document.getElementById("ascii");
@@ -35,9 +35,44 @@ function tick() {
 tick();
 setInterval(tick, 1000);
 
+let currentQuote = { text: "", author: "" };
+
 function renderQuote(q) {
-  quoteEl.textContent = `"${truncateQuote(q.text)}"`;
-  authorEl.textContent = q.author || "";
+  currentQuote = { text: q.text || "", author: q.author || "" };
+  quoteEl.textContent = `"${truncateQuote(currentQuote.text)}"`;
+  authorEl.textContent = currentQuote.author;
+}
+
+function setupQuoteCopy() {
+  const block = document.getElementById("quote-block");
+  const btn = document.getElementById("copy-quote");
+  const tip = document.getElementById("copy-tip");
+  if (!block || !btn || !tip) return;
+
+  window.addEventListener("mousemove", (e) => {
+    const r = block.getBoundingClientRect();
+    const pad = 80;
+    const near =
+      e.clientX >= r.left - pad &&
+      e.clientX <= r.right + pad &&
+      e.clientY >= r.top - pad &&
+      e.clientY <= r.bottom + pad;
+    block.classList.toggle("is-near", near);
+  });
+
+  btn.addEventListener("click", async () => {
+    const line = currentQuote.author
+      ? `${currentQuote.text} — ${currentQuote.author}`
+      : currentQuote.text;
+    try {
+      await navigator.clipboard.writeText(line);
+    } catch {
+      return;
+    }
+    tip.classList.remove("is-on");
+    void tip.offsetWidth;
+    tip.classList.add("is-on");
+  });
 }
 
 async function loadQuote() {
@@ -70,8 +105,9 @@ async function loadQuote() {
   }
 }
 
-new EyesDisplay(ascii, pickEyeVariant());
+new EyesDisplay(ascii);
 loadQuote();
+setupQuoteCopy();
 
 const chipsEl = document.getElementById("chips");
 const toastEl = document.getElementById("toast");

@@ -22,25 +22,10 @@ const CLASSIC_EYES = {
     lookY: 6.2,
 }
 
-const EYE_VARIANTS = [
-    CLASSIC_EYES,
-    { ...CLASSIC_EYES, id: "sleepy", upper: 11, upper2: 9, pupilY: 11, irisY: 10, y: 58 },
-    { ...CLASSIC_EYES, id: "wide", halfW: 58, irisX: 14.5, irisY: 15.5, lidC1: 34, lidC2: 22 },
-    { ...CLASSIC_EYES, id: "squint", upper: 12, upper2: 10, halfW: 45, pupilY: 8, irisY: 8.5 },
-    { ...CLASSIC_EYES, id: "glare", upper: 13, upper2: 12, pupilX: 2.8, pupilY: 21, irisX: 10, lookY: 8 },
-    { ...CLASSIC_EYES, id: "close", leftX: 92, rightX: 196 },
-    { ...CLASSIC_EYES, id: "far", leftX: 58, rightX: 230 },
-]
-
-function pickEyeVariant() {
-    if (Math.random() < 0.4) return CLASSIC_EYES
-    return EYE_VARIANTS[Math.floor(Math.random() * EYE_VARIANTS.length)]
-}
-
 class EyesDisplay {
-    constructor(element, variant = CLASSIC_EYES) {
+    constructor(element) {
         this.element = element
-        this.variant = variant && variant.id ? variant : CLASSIC_EYES
+        this.variant = CLASSIC_EYES
         this.sourceWidth = 288
         this.sourceHeight = 112
         this.columns = 64
@@ -102,14 +87,7 @@ class EyesDisplay {
         this.renderBackground()
         const hasCachedFrames = this.loadFramesFromCache()
         if (!hasCachedFrames) {
-            try {
-                await this.buildFrames()
-            } catch {
-                this.variant = CLASSIC_EYES
-                if (!this.loadFramesFromCache()) {
-                    await this.buildFrames()
-                }
-            }
+            await this.buildFrames()
         }
         this.observeResize()
         window.addEventListener("mousemove", this.handlePointerMove)
@@ -720,4 +698,4 @@ class EyesDisplay {
     }
 }
 
-export { EyesDisplay, CLASSIC_EYES, EYE_VARIANTS, pickEyeVariant }
+export { EyesDisplay, CLASSIC_EYES }
