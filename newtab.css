@@ -130,8 +130,9 @@ blockquote {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
 }
+#overlay { z-index: 20; }
+#modal { z-index: 25; }
 .modal-card, .overlay-card {
   background: #0a0a0a;
   border: 1px solid #2a2a2a;
