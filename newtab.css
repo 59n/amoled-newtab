@@ -14,27 +14,32 @@ body {
   justify-content: center;
 }
 main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.1rem;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  grid-template-rows: 11rem 1.15rem 4.1rem auto;
+  row-gap: 1.1rem;
+  width: min(920px, 100%);
   max-width: 920px;
   padding: 2rem 1.25rem 3rem;
 }
 .eyes {
   position: relative;
-  width: clamp(22rem, 48vw, 30rem);
-  min-height: clamp(9rem, 20vw, 12rem);
+  width: 20rem;
+  height: 11rem;
+  min-height: 11rem;
+  max-height: 11rem;
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(240, 235, 223, 0.3);
+  border: 0;
   background: #000;
   color: #f5efe2;
-  font-size: clamp(0.3rem, 0.48vw, 0.4rem);
+  font-size: 0.38rem;
   line-height: 1;
   letter-spacing: 0;
   overflow: hidden;
-  cursor: none;
+  cursor: default;
+  flex-shrink: 0;
 }
 .eyes__bg,
 .eyes__layer,
@@ -88,9 +93,10 @@ main {
 .eyes__tone--dim { color: rgba(206, 196, 176, 0.36); }
 .eyes__tone--bright { color: #f7f2e6; }
 #clock, .time {
+  height: 1.15rem;
   font-size: clamp(0.74rem, 1vw, 0.92rem);
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.15rem;
   letter-spacing: 0.08em;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -99,7 +105,9 @@ main {
 }
 .quote {
   width: min(30rem, 72vw);
+  height: 4.1rem;
   margin: 0;
+  overflow: hidden;
   color: rgba(214, 205, 188, 0.7);
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
   text-align: center;
@@ -133,8 +141,10 @@ main {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-content: start;
   gap: 0.45rem;
-  margin-top: 0.4rem;
+  margin-top: 0;
+  min-height: 2.4rem;
 }
 .chip {
   display: inline-flex;

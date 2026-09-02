@@ -8,7 +8,7 @@ class EyesDisplay {
         this.artRows = 28
         this.frameColumns = 9
         this.frameRows = 7
-        this.cacheVersion = "eyes-v17"
+        this.cacheVersion = "eyes-v18"
         this.densityChars = ["\u00b7", "~", "o", "x", "+", "=", "*", "%", "$", "@"]
         this.frameCache = new Map()
         this.blinkFrame = { bright: "", dim: "" }
