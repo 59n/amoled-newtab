@@ -72,6 +72,10 @@ loadQuote();
 const chipsEl = document.getElementById("chips");
 const toastEl = document.getElementById("toast");
 const menu = document.getElementById("menu");
+const overlay = document.getElementById("overlay");
+const overlayList = document.getElementById("overlay-list");
+const overlayAdd = document.getElementById("overlay-add");
+const gear = document.getElementById("gear");
 const MAX_CHIPS = 8;
 let shortcuts = [];
 
@@ -247,6 +251,7 @@ async function saveEditor() {
   }
   await persist();
   renderChips();
+  renderOverlay();
   closeModal();
 }
 
@@ -255,8 +260,80 @@ document.getElementById("modal-cancel").addEventListener("click", closeModal);
 modal.addEventListener("click", (e) => {
   if (e.target === modal) closeModal();
 });
+
+function renderOverlay() {
+  overlayList.replaceChildren();
+  shortcuts.forEach((chip, index) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = isEmptyChip(chip) ? "empty" : chip.name;
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const btn = (text, fn) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = text;
+      b.addEventListener("click", fn);
+      return b;
+    };
+    if (index > 0) actions.append(btn("up", () => moveChip(chip.id, -1)));
+    if (index < shortcuts.length - 1) actions.append(btn("down", () => moveChip(chip.id, 1)));
+    if (!isEmptyChip(chip)) {
+      actions.append(btn("edit", () => openEditor(chip.id)));
+      actions.append(btn("clear", () => clearChip(chip.id)));
+    }
+    actions.append(btn("×", () => deleteChip(chip.id)));
+    li.append(label, actions);
+    overlayList.append(li);
+  });
+  overlayAdd.classList.toggle("hidden", shortcuts.length >= MAX_CHIPS);
+}
+
+async function moveChip(id, dir) {
+  const i = shortcuts.findIndex((c) => c.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= shortcuts.length) return;
+  const next = shortcuts.slice();
+  [next[i], next[j]] = [next[j], next[i]];
+  shortcuts = next;
+  await persist();
+  renderChips();
+  renderOverlay();
+}
+
+async function clearChip(id) {
+  shortcuts = shortcuts.map((c) => (c.id === id ? { ...c, name: "", url: "" } : c));
+  await persist();
+  renderChips();
+  renderOverlay();
+}
+
+async function deleteChip(id) {
+  shortcuts = shortcuts.filter((c) => c.id !== id);
+  await persist();
+  renderChips();
+  renderOverlay();
+}
+
+function openOverlay() {
+  renderOverlay();
+  overlay.classList.remove("hidden");
+}
+function closeOverlay() {
+  overlay.classList.add("hidden");
+}
+
+gear.addEventListener("click", openOverlay);
+overlayAdd.addEventListener("click", () => openEditor(null));
+overlay.addEventListener("click", (e) => {
+  if (e.target === overlay) closeOverlay();
+});
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+  if (e.key === "Escape") {
+    closeOverlay();
+    closeModal();
+    closeMenu();
+  }
 });
 
 async function bootChips() {
