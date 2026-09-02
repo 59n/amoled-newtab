@@ -1,6 +1,46 @@
+const CLASSIC_EYES = {
+    id: "classic",
+    leftX: 72,
+    rightX: 216,
+    y: 56,
+    halfW: 49,
+    irisX: 12,
+    irisY: 13.6,
+    pupilX: 3.7,
+    pupilY: 16.7,
+    upper: 18.5,
+    upper2: 16.5,
+    lower: 7.5,
+    lower2: 15.5,
+    lidC1: 29,
+    lidC2: 18,
+    lidC3: 25,
+    lidC4: 24,
+    socketX: 1.8,
+    socketY: 1.15,
+    lookX: 12.5,
+    lookY: 6.2,
+}
+
+const EYE_VARIANTS = [
+    CLASSIC_EYES,
+    { ...CLASSIC_EYES, id: "sleepy", upper: 11, upper2: 9, pupilY: 11, irisY: 10, y: 58 },
+    { ...CLASSIC_EYES, id: "wide", halfW: 58, irisX: 14.5, irisY: 15.5, lidC1: 34, lidC2: 22 },
+    { ...CLASSIC_EYES, id: "squint", upper: 12, upper2: 10, halfW: 45, pupilY: 8, irisY: 8.5 },
+    { ...CLASSIC_EYES, id: "glare", upper: 13, upper2: 12, pupilX: 2.8, pupilY: 21, irisX: 10, lookY: 8 },
+    { ...CLASSIC_EYES, id: "close", leftX: 92, rightX: 196 },
+    { ...CLASSIC_EYES, id: "far", leftX: 58, rightX: 230 },
+]
+
+function pickEyeVariant() {
+    if (Math.random() < 0.4) return CLASSIC_EYES
+    return EYE_VARIANTS[Math.floor(Math.random() * EYE_VARIANTS.length)]
+}
+
 class EyesDisplay {
-    constructor(element) {
+    constructor(element, variant = CLASSIC_EYES) {
         this.element = element
+        this.variant = variant && variant.id ? variant : CLASSIC_EYES
         this.sourceWidth = 288
         this.sourceHeight = 112
         this.columns = 64
@@ -8,7 +48,7 @@ class EyesDisplay {
         this.artRows = 28
         this.frameColumns = 9
         this.frameRows = 7
-        this.cacheVersion = "eyes-v20"
+        this.cacheVersion = "eyes-v21"
         this.densityChars = ["\u00b7", "~", "o", "x", "+", "=", "*", "%", "$", "@"]
         this.frameCache = new Map()
         this.blinkFrame = { bright: "", dim: "" }
@@ -62,7 +102,14 @@ class EyesDisplay {
         this.renderBackground()
         const hasCachedFrames = this.loadFramesFromCache()
         if (!hasCachedFrames) {
-            await this.buildFrames()
+            try {
+                await this.buildFrames()
+            } catch {
+                this.variant = CLASSIC_EYES
+                if (!this.loadFramesFromCache()) {
+                    await this.buildFrames()
+                }
+            }
         }
         this.observeResize()
         window.addEventListener("mousemove", this.handlePointerMove)
@@ -230,30 +277,31 @@ class EyesDisplay {
     }
 
     createSvg(frameX, frameY, blink) {
+        const v = this.variant
         const centerColumn = Math.floor(this.frameColumns / 2)
         const centerRow = Math.floor(this.frameRows / 2)
         const normalizedX = (frameX - centerColumn) / Math.max(1, centerColumn)
         const normalizedY = (frameY - centerRow) / Math.max(1, centerRow)
-        const socketOffsetX = normalizedX * 1.8
-        const socketOffsetY = normalizedY * 1.15
-        const pupilOffsetX = normalizedX * 12.5
-        const pupilOffsetY = normalizedY * 6.2
-        const leftCenterX = 72 + socketOffsetX
-        const rightCenterX = 216 + socketOffsetX
-        const centerY = 56 + socketOffsetY
-        const eyeHalfWidth = 49
-        const irisRadiusX = 12
-        const irisRadiusY = 13.6
-        const pupilRadiusX = 3.7
-        const pupilRadiusY = 16.7
+        const socketOffsetX = normalizedX * v.socketX
+        const socketOffsetY = normalizedY * v.socketY
+        const pupilOffsetX = normalizedX * v.lookX
+        const pupilOffsetY = normalizedY * v.lookY
+        const leftCenterX = v.leftX + socketOffsetX
+        const rightCenterX = v.rightX + socketOffsetX
+        const centerY = v.y + socketOffsetY
+        const eyeHalfWidth = v.halfW
+        const irisRadiusX = v.irisX
+        const irisRadiusY = v.irisY
+        const pupilRadiusX = v.pupilX
+        const pupilRadiusY = v.pupilY
         const pupilShadowRadiusX = pupilRadiusX + 2.1
         const pupilShadowRadiusY = pupilRadiusY + 1.1
         const upperEase = normalizedY * -0.85
         const lowerEase = Math.max(0, normalizedY) * 0.5
         const eyeShape = (cx) =>
             `M ${cx - eyeHalfWidth} ${centerY + 4}
-             C ${cx - 29} ${centerY - 18.5 - upperEase} ${cx + 18} ${centerY - 16.5 - upperEase} ${cx + eyeHalfWidth} ${centerY}
-             C ${cx + 25} ${centerY + 7.5 - lowerEase} ${cx - 24} ${centerY + 15.5 - lowerEase} ${cx - eyeHalfWidth} ${centerY + 4} Z`
+             C ${cx - v.lidC1} ${centerY - v.upper - upperEase} ${cx + v.lidC2} ${centerY - v.upper2 - upperEase} ${cx + eyeHalfWidth} ${centerY}
+             C ${cx + v.lidC3} ${centerY + v.lower - lowerEase} ${cx - v.lidC4} ${centerY + v.lower2 - lowerEase} ${cx - eyeHalfWidth} ${centerY + 4} Z`
         const leftStart = leftCenterX - eyeHalfWidth
         const leftEnd = leftCenterX + eyeHalfWidth
         const rightStart = rightCenterX - eyeHalfWidth
@@ -282,10 +330,10 @@ class EyesDisplay {
 
         const openMarkup = `
           <defs>
-            <clipPath id="left-eye">
+            <clipPath id="left-eye-${v.id}">
               <path d="${eyeShape(leftCenterX)}" />
             </clipPath>
-            <clipPath id="right-eye">
+            <clipPath id="right-eye-${v.id}">
               <path d="${eyeShape(rightCenterX)}" />
             </clipPath>
           </defs>
@@ -299,14 +347,14 @@ class EyesDisplay {
           <path d="M ${rightCenterX - 1} ${centerY + troughDrop - 0.5} Q ${rightCenterX - 9} ${centerY + tearTroughSoftDrop} ${rightCenterX - 18} ${centerY + troughDrop + 1.4}" fill="none" stroke="#0e0c0b" stroke-width="1.6" stroke-linecap="round"/>
           <path d="${eyeShape(leftCenterX)}" fill="#f0ebdf"/>
           <path d="${eyeShape(rightCenterX)}" fill="#f0ebdf"/>
-          <g clip-path="url(#left-eye)">
+          <g clip-path="url(#left-eye-${v.id})">
             <ellipse cx="${leftCenterX + pupilOffsetX}" cy="${centerY + pupilOffsetY}" rx="${irisRadiusX}" ry="${irisRadiusY}" fill="#726b63"/>
             <ellipse cx="${leftCenterX + pupilOffsetX}" cy="${centerY + pupilOffsetY}" rx="${pupilShadowRadiusX}" ry="${pupilShadowRadiusY}" fill="#0d0c0b" opacity="0.78"/>
             <ellipse cx="${leftCenterX + pupilOffsetX}" cy="${centerY + pupilOffsetY}" rx="${pupilRadiusX}" ry="${pupilRadiusY}" fill="#000000"/>
             <circle cx="${leftCenterX + pupilOffsetX - 4}" cy="${centerY + pupilOffsetY - 5.3}" r="1.25" fill="#f4f1e8"/>
             <path d="M ${leftStart + 3} ${centerY + 4} Q ${leftCenterX - 1} ${centerY - 6.8} ${leftEnd - 3} ${centerY + 1}" fill="none" stroke="#9c9488" stroke-width="6.1" stroke-linecap="round" opacity="0.36"/>
           </g>
-          <g clip-path="url(#right-eye)">
+          <g clip-path="url(#right-eye-${v.id})">
             <ellipse cx="${rightCenterX + pupilOffsetX}" cy="${centerY + pupilOffsetY}" rx="${irisRadiusX}" ry="${irisRadiusY}" fill="#726b63"/>
             <ellipse cx="${rightCenterX + pupilOffsetX}" cy="${centerY + pupilOffsetY}" rx="${pupilShadowRadiusX}" ry="${pupilShadowRadiusY}" fill="#0d0c0b" opacity="0.78"/>
             <ellipse cx="${rightCenterX + pupilOffsetX}" cy="${centerY + pupilOffsetY}" rx="${pupilRadiusX}" ry="${pupilRadiusY}" fill="#000000"/>
@@ -422,6 +470,7 @@ class EyesDisplay {
     getCacheKey() {
         return [
             this.cacheVersion,
+            this.variant.id,
             this.columns,
             this.rows,
             this.artRows,
@@ -671,4 +720,4 @@ class EyesDisplay {
     }
 }
 
-export { EyesDisplay }
+export { EyesDisplay, CLASSIC_EYES, EYE_VARIANTS, pickEyeVariant }

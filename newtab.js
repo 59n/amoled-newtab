@@ -13,7 +13,7 @@ import {
   SCALE_STEP,
 } from "./storage.js";
 import { loadFallbacks, truncateQuote } from "./ascii.js";
-import { EyesDisplay } from "./eyes-display.js";
+import { EyesDisplay, pickEyeVariant } from "./eyes-display.js";
 
 const clock = document.getElementById("clock");
 const ascii = document.getElementById("ascii");
@@ -70,7 +70,7 @@ async function loadQuote() {
   }
 }
 
-new EyesDisplay(ascii);
+new EyesDisplay(ascii, pickEyeVariant());
 loadQuote();
 
 const chipsEl = document.getElementById("chips");
