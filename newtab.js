@@ -1,4 +1,7 @@
+import { loadAscii } from "./ascii.js";
+
 const clock = document.getElementById("clock");
+const ascii = document.getElementById("ascii");
 
 function formatTime(d) {
   const pad = (n) => String(n).padStart(2, "0");
@@ -14,3 +17,6 @@ function tick() {
 
 tick();
 setInterval(tick, 1000);
+
+ascii.addEventListener("click", () => loadAscii(ascii));
+loadAscii(ascii);

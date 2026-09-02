@@ -1,3 +1,5 @@
+import { loadArtCache, saveArtCache } from "./storage.js";
+
 export const RAMP = " .:-=+*#%@";
 export const COLS = 90;
 export const MAX_ROWS = 40;
@@ -107,4 +109,27 @@ export function setAscii(preEl, art) {
   stopGlitch();
   preEl.textContent = art;
   startGlitch(preEl);
+}
+
+export async function loadFallbacks() {
+  const res = await fetch(new URL("fallbacks.json", import.meta.url));
+  return res.json();
+}
+
+export async function loadAscii(preEl) {
+  const fb = await loadFallbacks();
+  const cached = await loadArtCache();
+  const show = (art) => setAscii(preEl, art);
+
+  if (cached) show(cached);
+  else show(fb.art[Math.floor(Math.random() * fb.art.length)]);
+
+  try {
+    const blob = await fetchRandomImage();
+    const art = await blobToAscii(blob);
+    await saveArtCache(art);
+    show(art);
+  } catch {
+    if (!cached) show(fb.art[Math.floor(Math.random() * fb.art.length)]);
+  }
 }
