@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "AMOLED New Tab",
+  "version": "1.0.0",
+  "description": "AMOLED new tab with glitching ASCII, a clock, a quote, and editable shortcuts.",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://picsum.photos/*",
+    "https://fastly.picsum.photos/*",
+    "https://api.quotable.io/*",
+    "https://dummyjson.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

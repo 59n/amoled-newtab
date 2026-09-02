@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Tab</title>
+  <link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+  <button id="gear" type="button" aria-label="Shortcuts">⚙</button>
+
+  <main>
+    <pre id="ascii" aria-label="ASCII art"></pre>
+    <time id="clock"></time>
+    <blockquote>
+      <p id="quote"></p>
+      <footer id="author"></footer>
+    </blockquote>
+    <nav id="chips" aria-label="Shortcuts"></nav>
+  </main>
+
+  <div id="modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <h2 id="modal-title">Shortcut</h2>
+      <label>Name <input id="field-name" type="text" autocomplete="off"></label>
+      <label>URL <input id="field-url" type="text" autocomplete="off"></label>
+      <p id="modal-error" class="error hidden">Enter a valid URL.</p>
+      <div class="modal-actions">
+        <button id="modal-cancel" type="button">Cancel</button>
+        <button id="modal-save" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+    <div class="overlay-card">
+      <h2 id="overlay-title">Shortcuts</h2>
+      <ul id="overlay-list"></ul>
+      <button id="overlay-add" type="button">+ add</button>
+    </div>
+  </div>
+
+  <div id="menu" class="hidden" role="menu"></div>
+  <div id="toast" class="hidden" role="status"></div>
+
+  <script type="module" src="newtab.js"></script>
+</body>
+</html>
