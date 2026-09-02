@@ -17,9 +17,14 @@
     <div id="ascii" class="eyes" aria-label="ASCII art"></div>
     <time id="clock" class="time"></time>
     <blockquote class="quote" id="quote-block">
+      <button type="button" id="copy-quote" class="copy-quote" aria-label="Copy quote">
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <rect x="8" y="8" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+          <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+      </button>
       <p id="quote"></p>
       <cite id="author"></cite>
-      <button type="button" id="copy-quote" class="copy-quote" aria-label="Copy quote">Copy</button>
       <span id="copy-tip" class="copy-tip" role="status">Copied</span>
     </blockquote>
     <nav id="chips" aria-label="Shortcuts"></nav>
