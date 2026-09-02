@@ -53,6 +53,7 @@ export async function blobToAscii(blob, cols = COLS, maxRows = MAX_ROWS) {
 }
 
 let glitchTimer = 0;
+let restoreTimer = 0;
 let glitchOriginal = "";
 
 export function stopGlitch() {
@@ -60,6 +61,11 @@ export function stopGlitch() {
     clearInterval(glitchTimer);
     glitchTimer = 0;
   }
+  if (restoreTimer) {
+    clearTimeout(restoreTimer);
+    restoreTimer = 0;
+  }
+  glitchOriginal = "";
 }
 
 export function startGlitch(preEl) {
@@ -90,8 +96,9 @@ export function startGlitch(preEl) {
       lines[y] = cut.concat(row);
     }
     preEl.textContent = lines.map((l) => l.join("")).join("\n");
-    setTimeout(() => {
+    restoreTimer = setTimeout(() => {
       if (glitchOriginal) preEl.textContent = glitchOriginal;
+      restoreTimer = 0;
     }, 80);
   }, 400 + Math.floor(Math.random() * 800));
 }
