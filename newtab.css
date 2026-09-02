@@ -25,8 +25,8 @@ main {
   border: 1px solid #2a2a2a;
   color: #9a9a9a;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 7px;
-  line-height: 1.05;
+  font-size: 11px;
+  line-height: 1.12;
   padding: 12px 14px;
   white-space: pre;
   cursor: pointer;

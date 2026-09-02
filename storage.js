@@ -104,12 +104,12 @@ export async function saveScale(n) {
 }
 
 export async function loadArtCache() {
-  const v = await getLocal("artCache");
+  const v = await getLocal("drawnArt");
   return typeof v === "string" ? v : null;
 }
 
 export async function saveArtCache(art) {
-  await setLocal("artCache", art);
+  await setLocal("drawnArt", art);
 }
 
 export async function loadQuoteCache() {

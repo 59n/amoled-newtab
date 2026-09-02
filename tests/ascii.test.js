@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { RAMP, pixelsToAscii, truncateQuote } from "../ascii.js";
+import { RAMP, pixelsToAscii, truncateQuote, normalizeArt, artFits, isDividerLabel } from "../ascii.js";
 
 function rgba(w, h, fill) {
   const data = new Uint8ClampedArray(w * h * 4);
@@ -36,4 +36,20 @@ test("truncateQuote caps at 140 with ellipsis", () => {
   const out = truncateQuote(long);
   assert.equal(out.length, 140);
   assert.equal(out.endsWith("…"), true);
+});
+
+test("normalizeArt unifies newlines", () => {
+  assert.equal(normalizeArt("a\r\nb\rc"), "a\nb\nc");
+});
+
+test("artFits rejects tiny, huge, and empty", () => {
+  assert.equal(artFits("/\\_/\\\n( o.o )\n > ^ <"), true);
+  assert.equal(artFits("hi"), false);
+  assert.equal(artFits(["x".repeat(200), "y", "z"].join("\n")), false);
+  assert.equal(artFits(""), false);
+});
+
+test("isDividerLabel skips divider categories", () => {
+  assert.equal(isDividerLabel("Art and design,Dividers"), true);
+  assert.equal(isDividerLabel("Animals,Cats"), false);
 });

@@ -37,21 +37,62 @@ export function truncateQuote(text, max = 140) {
   return t.slice(0, max - 1) + "…";
 }
 
-export async function fetchRandomImage() {
-  const res = await fetch("https://picsum.photos/800/400.jpg?grayscale");
-  if (!res.ok) throw new Error("image fetch failed");
-  return res.blob();
+export const ASCII_POOL = 5293;
+export const MAX_ART_COLS = 110;
+export const MAX_ART_ROWS = 42;
+export const MIN_ART_ROWS = 3;
+
+export function normalizeArt(raw) {
+  return String(raw || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\t/g, "    ")
+    .replace(/[ \t]+\n/g, "\n")
+    .trimEnd();
 }
 
-export async function blobToAscii(blob, cols = COLS, maxRows = MAX_ROWS) {
-  const bitmap = await createImageBitmap(blob);
-  const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  ctx.drawImage(bitmap, 0, 0);
-  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  return pixelsToAscii(data, canvas.width, canvas.height, cols, maxRows);
+export function artFits(art, maxCols = MAX_ART_COLS, maxRows = MAX_ART_ROWS) {
+  const lines = String(art || "").split("\n").filter((l, i, a) => l.length || (i > 0 && i < a.length - 1));
+  if (lines.length < MIN_ART_ROWS || lines.length > maxRows) return false;
+  const width = Math.max(0, ...lines.map((l) => l.length));
+  return width >= 6 && width <= maxCols;
+}
+
+export function isDividerLabel(labels) {
+  return String(labels || "").toLowerCase().includes("divider");
+}
+
+export async function fetchAsciiAt(offset) {
+  const url =
+    "https://datasets-server.huggingface.co/rows" +
+    "?dataset=apehex/ascii-art&config=asciiart&split=train" +
+    `&offset=${offset}&length=1`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("ascii fetch failed");
+  const data = await res.json();
+  const row = data?.rows?.[0]?.row;
+  if (!row) throw new Error("empty ascii row");
+  return {
+    art: normalizeArt(row.content),
+    labels: row.labels || "",
+    caption: row.caption || "",
+  };
+}
+
+export async function fetchRandomAsciiArt(tries = 8) {
+  let lastErr = new Error("no ascii");
+  for (let i = 0; i < tries; i++) {
+    const offset = Math.floor(Math.random() * ASCII_POOL);
+    try {
+      const piece = await fetchAsciiAt(offset);
+      if (isDividerLabel(piece.labels)) continue;
+      if (!artFits(piece.art)) continue;
+      return piece.art;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
 }
 
 let glitchTimer = 0;
@@ -79,9 +120,10 @@ export function startGlitch(preEl) {
     if (!src.length) return;
     const lines = src.map((l) => l.split(""));
     const total = lines.reduce((n, l) => n + l.length, 0);
-    const flips = Math.max(1, Math.floor(total * (0.01 + Math.random() * 0.02)));
+    const flips = Math.max(1, Math.floor(total * (0.008 + Math.random() * 0.015)));
     for (let i = 0; i < flips; i++) {
       const y = Math.floor(Math.random() * lines.length);
+      if (!lines[y].length) continue;
       const x = Math.floor(Math.random() * lines[y].length);
       const ch = lines[y][x];
       const idx = ramp.indexOf(ch);
@@ -90,12 +132,14 @@ export function startGlitch(preEl) {
         lines[y][x] = ramp[n];
       }
     }
-    if (Math.random() < 0.45) {
+    if (Math.random() < 0.35) {
       const y = Math.floor(Math.random() * lines.length);
-      const shift = 1 + Math.floor(Math.random() * 3);
-      const row = lines[y];
-      const cut = row.splice(row.length - shift, shift);
-      lines[y] = cut.concat(row);
+      if (lines[y].length > 4) {
+        const shift = 1 + Math.floor(Math.random() * 2);
+        const row = lines[y];
+        const cut = row.splice(row.length - shift, shift);
+        lines[y] = cut.concat(row);
+      }
     }
     preEl.textContent = lines.map((l) => l.join("")).join("\n");
     restoreTimer = setTimeout(() => {
@@ -119,17 +163,17 @@ export async function loadFallbacks() {
 export async function loadAscii(preEl) {
   const fb = await loadFallbacks();
   const cached = await loadArtCache();
+  const bundled = () => fb.art[Math.floor(Math.random() * fb.art.length)];
   const show = (art) => setAscii(preEl, art);
 
-  if (cached) show(cached);
-  else show(fb.art[Math.floor(Math.random() * fb.art.length)]);
+  if (cached && artFits(cached, 140, 50)) show(cached);
+  else show(bundled());
 
   try {
-    const blob = await fetchRandomImage();
-    const art = await blobToAscii(blob);
+    const art = await fetchRandomAsciiArt();
     await saveArtCache(art);
     show(art);
   } catch {
-    if (!cached) show(fb.art[Math.floor(Math.random() * fb.art.length)]);
+    if (!(cached && artFits(cached, 140, 50))) show(bundled());
   }
 }
