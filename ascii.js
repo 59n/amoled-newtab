@@ -1,4 +1,5 @@
-import { loadArtCache, saveArtCache } from "./storage.js";
+import { saveArtCache } from "./storage.js";
+import { randomEyeParams, renderEyes, renderEyesBlink } from "./eyes.js";
 
 export const RAMP = " .:-=+*#%@";
 export const COLS = 90;
@@ -97,7 +98,9 @@ export async function fetchRandomAsciiArt(tries = 8) {
 
 let glitchTimer = 0;
 let restoreTimer = 0;
+let blinkTimer = 0;
 let glitchOriginal = "";
+let eyeParams = null;
 
 export function stopGlitch() {
   if (glitchTimer) {
@@ -108,7 +111,12 @@ export function stopGlitch() {
     clearTimeout(restoreTimer);
     restoreTimer = 0;
   }
+  if (blinkTimer) {
+    clearTimeout(blinkTimer);
+    blinkTimer = 0;
+  }
   glitchOriginal = "";
+  eyeParams = null;
 }
 
 export function startGlitch(preEl) {
@@ -149,10 +157,29 @@ export function startGlitch(preEl) {
   }, 400 + Math.floor(Math.random() * 800));
 }
 
-export function setAscii(preEl, art) {
+export function startEyeIdle(preEl, params) {
+  stopGlitch();
+  eyeParams = params;
+  const wait = () => 2600 + Math.random() * 4200;
+  const schedule = () => {
+    blinkTimer = setTimeout(() => {
+      if (!eyeParams) return;
+      preEl.textContent = renderEyesBlink(eyeParams, 0.8);
+      restoreTimer = setTimeout(() => {
+        if (!eyeParams) return;
+        preEl.textContent = renderEyes(eyeParams);
+        schedule();
+      }, 90 + Math.random() * 70);
+    }, wait());
+  };
+  schedule();
+}
+
+export function setAscii(preEl, art, params) {
   stopGlitch();
   preEl.textContent = art;
-  startGlitch(preEl);
+  if (params) startEyeIdle(preEl, params);
+  else startGlitch(preEl);
 }
 
 export async function loadFallbacks() {
@@ -161,19 +188,10 @@ export async function loadFallbacks() {
 }
 
 export async function loadAscii(preEl) {
-  const fb = await loadFallbacks();
-  const cached = await loadArtCache();
-  const bundled = () => fb.art[Math.floor(Math.random() * fb.art.length)];
-  const show = (art) => setAscii(preEl, art);
-
-  if (cached && artFits(cached, 140, 50)) show(cached);
-  else show(bundled());
-
+  const params = randomEyeParams();
+  const art = renderEyes(params);
   try {
-    const art = await fetchRandomAsciiArt();
     await saveArtCache(art);
-    show(art);
-  } catch {
-    if (!(cached && artFits(cached, 140, 50))) show(bundled());
-  }
+  } catch {}
+  setAscii(preEl, art, params);
 }

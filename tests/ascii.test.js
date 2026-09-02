@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { RAMP, pixelsToAscii, truncateQuote, normalizeArt, artFits, isDividerLabel } from "../ascii.js";
+import { renderEyes, randomEyeParams, EYE_PRESETS } from "../eyes.js";
 
 function rgba(w, h, fill) {
   const data = new Uint8ClampedArray(w * h * 4);
@@ -52,4 +53,26 @@ test("artFits rejects tiny, huge, and empty", () => {
 test("isDividerLabel skips divider categories", () => {
   assert.equal(isDividerLabel("Art and design,Dividers"), true);
   assert.equal(isDividerLabel("Animals,Cats"), false);
+});
+
+test("renderEyes draws a pair of eyes", () => {
+  const art = renderEyes({ name: "open", lid: 0.12, cols: 88, rows: 16 });
+  const lines = art.split("\n");
+  assert.ok(lines.length >= 5);
+  assert.ok(art.includes("S") || art.includes("X") || art.includes("#"));
+  const nonempty = lines.filter((l) => /[^\s.]/.test(l));
+  assert.ok(nonempty.length >= 4);
+});
+
+test("eye presets each produce unique output", () => {
+  const seen = new Set(EYE_PRESETS.map((p) => renderEyes({ ...p })));
+  assert.ok(seen.size >= EYE_PRESETS.length - 1);
+});
+
+test("randomEyeParams stays in range", () => {
+  for (let i = 0; i < 20; i++) {
+    const p = randomEyeParams();
+    assert.ok(p.lid >= 0 && p.lid <= 1);
+    assert.ok(p.lookX >= -0.5 && p.lookX <= 0.5);
+  }
 });

@@ -23,10 +23,10 @@ main {
 }
 #ascii {
   border: 1px solid #2a2a2a;
-  color: #9a9a9a;
+  color: #c2c2c2;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  line-height: 1.12;
+  font-size: 9px;
+  line-height: 1.08;
   padding: 12px 14px;
   white-space: pre;
   cursor: pointer;
