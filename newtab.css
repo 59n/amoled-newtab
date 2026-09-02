@@ -2,9 +2,9 @@
 html, body {
   height: 100%;
   background: #000;
-  color: #c8c8c8;
+  color: #f0ebdf;
   overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: "IBM Plex Mono", "Cascadia Code", "Courier New", ui-monospace, monospace;
 }
 html { --page-scale: 1; }
 main { zoom: var(--page-scale); }
@@ -21,46 +21,113 @@ main {
   max-width: 920px;
   padding: 2rem 1.25rem 3rem;
 }
-#ascii {
-  border: 1px solid #2a2a2a;
-  color: #c2c2c2;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 9px;
-  line-height: 1.08;
-  padding: 12px 14px;
+.eyes {
+  position: relative;
+  width: clamp(22rem, 48vw, 30rem);
+  min-height: clamp(9rem, 20vw, 12rem);
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(240, 235, 223, 0.3);
+  background: #000;
+  color: #f5efe2;
+  font-size: clamp(0.3rem, 0.48vw, 0.4rem);
+  line-height: 1;
+  letter-spacing: 0;
+  overflow: hidden;
+  cursor: none;
+}
+.eyes__bg,
+.eyes__layer,
+.eyes__tone,
+.eyes__region {
+  position: absolute;
+  inset: 0;
+}
+.eyes__bg {
+  top: -0.08em;
+  bottom: -0.45em;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
   white-space: pre;
-  cursor: pointer;
-  min-width: 280px;
-  min-height: 80px;
-  animation: flicker 3s steps(2, end) infinite;
+  color: rgba(242, 236, 220, 0.08);
 }
-@keyframes flicker {
-  0%, 93%, 100% { opacity: 1; }
-  95% { opacity: 0.72; }
+.eyes__layer {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 55ms linear;
 }
-#clock {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.95rem;
-  letter-spacing: 0.28em;
-  color: #c8c8c8;
+.eyes__layer--active { opacity: 1; }
+.eyes__tone {
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  white-space: pre;
 }
-blockquote {
+.eyes__region { will-change: transform; }
+.eyes__region--left {
+  clip-path: inset(14% 50% 13% 4%);
+  transform-origin: 25% 50%;
+}
+.eyes__region--right {
+  clip-path: inset(14% 4% 13% 50%);
+  transform-origin: 75% 50%;
+}
+.eyes[data-agitate="left"] .eyes__tone.eyes__region--left,
+.eyes[data-agitate="right"] .eyes__tone.eyes__region--right {
+  animation: eyes-uneasy-jitter 126ms linear infinite;
+}
+@keyframes eyes-uneasy-jitter {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) skewX(0deg); }
+  18% { transform: translate3d(-1px, 0.8px, 0) rotate(-0.18deg) skewX(-0.28deg); }
+  37% { transform: translate3d(1.2px, -0.9px, 0) rotate(0.16deg) skewX(0.22deg); }
+  56% { transform: translate3d(-0.8px, 1.1px, 0) rotate(-0.24deg) skewX(-0.35deg); }
+  76% { transform: translate3d(1px, 0.6px, 0) rotate(0.12deg) skewX(0.18deg); }
+  100% { transform: translate3d(-0.7px, -0.8px, 0) rotate(-0.14deg) skewX(-0.2deg); }
+}
+.eyes__tone--dim { color: rgba(206, 196, 176, 0.36); }
+.eyes__tone--bright { color: #f7f2e6; }
+#clock, .time {
+  font-size: clamp(0.74rem, 1vw, 0.92rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.08em;
   text-align: center;
-  max-width: 36rem;
-}
-#quote {
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-  font-size: 0.95rem;
-  color: #7a7a7a;
-  line-height: 1.4;
-}
-#author {
-  margin-top: 0.45rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
+  font-variant-numeric: tabular-nums;
   text-transform: uppercase;
-  color: #555;
+  color: rgba(240, 235, 223, 0.88);
+}
+.quote {
+  width: min(30rem, 72vw);
+  margin: 0;
+  color: rgba(214, 205, 188, 0.7);
+  font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
+  text-align: center;
+}
+.quote p {
+  margin: 0;
+  font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
+  font-size: clamp(0.84rem, 1.16vw, 1.02rem);
+  font-style: italic;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+}
+.quote cite, #author {
+  display: block;
+  margin-top: 0.38rem;
+  font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
+  font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(188, 178, 163, 0.46);
+}
+#chips,
+.chip,
+#zoom-controls,
+.overlay-card,
+.modal-card {
+  font-family: system-ui, -apple-system, sans-serif;
 }
 #chips {
   display: flex;

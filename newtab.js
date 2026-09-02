@@ -12,7 +12,8 @@ import {
   clampScale,
   SCALE_STEP,
 } from "./storage.js";
-import { loadAscii, loadFallbacks, truncateQuote } from "./ascii.js";
+import { loadFallbacks, truncateQuote } from "./ascii.js";
+import { EyesDisplay } from "./eyes-display.js";
 
 const clock = document.getElementById("clock");
 const ascii = document.getElementById("ascii");
@@ -69,8 +70,7 @@ async function loadQuote() {
   }
 }
 
-ascii.addEventListener("click", () => loadAscii(ascii));
-loadAscii(ascii);
+new EyesDisplay(ascii);
 loadQuote();
 
 const chipsEl = document.getElementById("chips");
