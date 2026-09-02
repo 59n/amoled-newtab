@@ -5,6 +5,8 @@ html, body {
   color: #f0ebdf;
   overflow: hidden;
   font-family: "IBM Plex Mono", "Cascadia Code", "Courier New", ui-monospace, monospace;
+  user-select: none;
+  -webkit-user-select: none;
 }
 html { --page-scale: 1; }
 main { zoom: var(--page-scale); }
@@ -54,14 +56,7 @@ main {
   inset: 0;
 }
 .eyes__bg {
-  top: 0;
-  bottom: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  pointer-events: none;
-  white-space: pre;
-  color: rgba(242, 236, 220, 0.08);
+  display: none;
 }
 .eyes__layer {
   pointer-events: none;
@@ -87,17 +82,9 @@ main {
   clip-path: inset(6% 0 6% 50%);
   transform-origin: 75% 50%;
 }
-.eyes[data-agitate="left"] .eyes__tone.eyes__region--left,
-.eyes[data-agitate="right"] .eyes__tone.eyes__region--right {
-  animation: eyes-uneasy-jitter 126ms linear infinite;
-}
-@keyframes eyes-uneasy-jitter {
-  0% { transform: translate3d(0, 0, 0) rotate(0deg) skewX(0deg); }
-  18% { transform: translate3d(-1px, 0.8px, 0) rotate(-0.18deg) skewX(-0.28deg); }
-  37% { transform: translate3d(1.2px, -0.9px, 0) rotate(0.16deg) skewX(0.22deg); }
-  56% { transform: translate3d(-0.8px, 1.1px, 0) rotate(-0.24deg) skewX(-0.35deg); }
-  76% { transform: translate3d(1px, 0.6px, 0) rotate(0.12deg) skewX(0.18deg); }
-  100% { transform: translate3d(-0.7px, -0.8px, 0) rotate(-0.14deg) skewX(-0.2deg); }
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
 }
 .eyes__tone--dim { color: rgba(206, 196, 176, 0.36); }
 .eyes__tone--bright { color: #f7f2e6; }
@@ -174,6 +161,8 @@ main {
   height: 16px;
   border-radius: 4px;
   background: #161616;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 .chip .letter {
   display: flex;

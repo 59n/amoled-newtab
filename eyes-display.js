@@ -30,6 +30,10 @@ class EyesDisplay {
         this.layers = []
         this.activeLayerIndex = 0
         this.hoveredEye = ""
+        this.scrollUntil = 0
+        this.scrollY = Math.floor(this.frameRows / 2)
+        this.avertUntil = 0
+        this.avertX = Math.floor(this.frameColumns / 2)
         this.currentGaze = {
             x: Math.floor(this.frameColumns / 2),
             y: Math.floor(this.frameRows / 2),
@@ -43,8 +47,9 @@ class EyesDisplay {
 
         this.handlePointerMove = this.handlePointerMove.bind(this)
         this.handlePointerLeave = this.handlePointerLeave.bind(this)
-        this.handleEyeHoverMove = this.handleEyeHoverMove.bind(this)
-        this.handleEyeHoverLeave = this.handleEyeHoverLeave.bind(this)
+        this.handleWheel = this.handleWheel.bind(this)
+        this.handleClick = this.handleClick.bind(this)
+        this.handleContextMenu = this.handleContextMenu.bind(this)
         this.animate = this.animate.bind(this)
         this.handleResize = this.handleResize.bind(this)
 
@@ -62,8 +67,9 @@ class EyesDisplay {
         this.observeResize()
         window.addEventListener("mousemove", this.handlePointerMove)
         window.addEventListener("mouseleave", this.handlePointerLeave)
-        this.element.addEventListener("mousemove", this.handleEyeHoverMove)
-        this.element.addEventListener("mouseleave", this.handleEyeHoverLeave)
+        window.addEventListener("wheel", this.handleWheel, { passive: false })
+        window.addEventListener("contextmenu", this.handleContextMenu)
+        this.element.addEventListener("click", this.handleClick)
         this.renderFrame(this.getCenterFrameKey(), true)
         requestAnimationFrame(this.animate)
     }
@@ -397,13 +403,7 @@ class EyesDisplay {
         if (!this.backgroundLayer) {
             return
         }
-
-        const backgroundText = Array.from(
-            { length: this.rows },
-            () => this.densityChars[0].repeat(this.columns)
-        ).join("\n")
-
-        this.backgroundLayer.textContent = backgroundText
+        this.backgroundLayer.textContent = ""
     }
 
     fract(value) {
@@ -492,51 +492,35 @@ class EyesDisplay {
         this.idleStart = performance.now()
     }
 
-    handleEyeHoverMove(event) {
-        const rect = this.element.getBoundingClientRect()
-        const normalizedX = (event.clientX - rect.left) / Math.max(1, rect.width)
-        const normalizedY = (event.clientY - rect.top) / Math.max(1, rect.height)
-        const hoveredEye = this.resolveHoveredEye(normalizedX, normalizedY)
-
-        this.setHoveredEye(hoveredEye)
+    handleWheel(event) {
+        event.preventDefault()
+        const now = performance.now()
+        this.scrollY = event.deltaY > 0 ? this.frameRows - 1 : 0
+        this.scrollUntil = now + 480
+        this.pointer.active = false
+        if (!this.isBlinking) {
+            this.startBlink(now, 90)
+        }
     }
 
-    handleEyeHoverLeave() {
-        this.setHoveredEye("")
+    handleClick() {
+        const now = performance.now()
+        this.startBlink(now, 70)
+        window.setTimeout(() => {
+            this.startBlink(performance.now(), 160)
+        }, 120)
     }
 
-    resolveHoveredEye(normalizedX, normalizedY) {
-        const isWithinEye = (centerX) => {
-            const deltaX = (normalizedX - centerX) / 0.19
-            const deltaY = (normalizedY - 0.5) / 0.29
-
-            return deltaX * deltaX + deltaY * deltaY <= 1
-        }
-
-        if (isWithinEye(0.25)) {
-            return "left"
-        }
-
-        if (isWithinEye(0.75)) {
-            return "right"
-        }
-
-        return ""
-    }
-
-    setHoveredEye(side) {
-        if (this.hoveredEye === side) {
+    handleContextMenu(event) {
+        if (event.target.closest("input, textarea")) {
             return
         }
-
-        this.hoveredEye = side
-
-        if (side) {
-            this.element.dataset.agitate = side
-            return
-        }
-
-        delete this.element.dataset.agitate
+        event.preventDefault()
+        const now = performance.now()
+        this.avertX = event.clientX < window.innerWidth / 2 ? this.frameColumns - 1 : 0
+        this.avertUntil = now + 900
+        this.pointer.active = false
+        this.startBlink(now, 220)
     }
 
     getTrackedFrame() {
@@ -612,9 +596,22 @@ class EyesDisplay {
         if (this.isBlinking) {
             this.renderBlink()
         } else {
-            const targetFrame = isTracking
-                ? this.getTrackedFrame()
-                : this.getIdleFrame(timestamp)
+            let targetFrame
+            if (timestamp < this.scrollUntil) {
+                targetFrame = {
+                    x: Math.floor(this.frameColumns / 2),
+                    y: this.scrollY,
+                }
+            } else if (timestamp < this.avertUntil) {
+                targetFrame = {
+                    x: this.avertX,
+                    y: Math.floor(this.frameRows / 2),
+                }
+            } else if (isTracking) {
+                targetFrame = this.getTrackedFrame()
+            } else {
+                targetFrame = this.getIdleFrame(timestamp)
+            }
             this.updateCurrentGaze(targetFrame, timestamp)
 
             this.renderFrame(
