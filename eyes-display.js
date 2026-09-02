@@ -8,7 +8,7 @@ class EyesDisplay {
         this.artRows = 28
         this.frameColumns = 9
         this.frameRows = 7
-        this.cacheVersion = "eyes-v18"
+        this.cacheVersion = "eyes-v19"
         this.densityChars = ["\u00b7", "~", "o", "x", "+", "=", "*", "%", "$", "@"]
         this.frameCache = new Map()
         this.blinkFrame = { bright: "", dim: "" }
@@ -159,8 +159,10 @@ class EyesDisplay {
         probe.style.position = "absolute"
         probe.style.visibility = "hidden"
         probe.style.whiteSpace = "pre"
+        probe.style.left = "0"
+        probe.style.top = "0"
         probe.style.font = getComputedStyle(this.element).font
-        document.body.appendChild(probe)
+        this.element.appendChild(probe)
         const rect = probe.getBoundingClientRect()
         probe.remove()
 
@@ -173,18 +175,18 @@ class EyesDisplay {
     updateGridSize() {
         const rect = this.element.getBoundingClientRect()
         const metrics = this.measureCharacter()
-        const horizontalPadding = 2
-        const verticalPadding = 2
-        const nextColumns = Math.floor((rect.width - horizontalPadding) / metrics.width)
-        const maxRows = Math.floor((rect.height - verticalPadding) / metrics.height)
+        const charW = Math.max(metrics.width, 0.5)
+        const charH = Math.max(metrics.height, 0.5)
+        const nextColumns = Math.max(32, Math.floor(rect.width / charW) - 1)
+        const maxRows = Math.max(12, Math.floor(rect.height / charH) - 1)
         const aspectRows = Math.floor(
-            (Math.max(64, nextColumns) * metrics.width) /
-            ((this.sourceWidth / this.sourceHeight) * metrics.height)
+            (nextColumns * charW) /
+            ((this.sourceWidth / this.sourceHeight) * charH)
         )
 
-        this.columns = Math.max(64, nextColumns)
-        this.rows = Math.max(20, maxRows)
-        this.artRows = Math.max(18, Math.min(maxRows, aspectRows))
+        this.columns = nextColumns
+        this.rows = maxRows
+        this.artRows = Math.max(12, Math.min(maxRows, aspectRows))
         this.canvas.width = this.columns
         this.canvas.height = this.artRows
     }
