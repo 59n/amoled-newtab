@@ -9,10 +9,9 @@ def png(size):
     for y in range(size):
         row = [0]
         for x in range(size):
-            edge = x < inset or y < inset or x >= size - inset or y >= size - inset
-            inner = inset <= x < size - inset and inset <= y < size - inset
-            frame = edge and not (inset + 1 <= x < size - inset - 1 and inset + 1 <= y < size - inset - 1)
-            if frame and inner:
+            in_outer = inset <= x < size - inset and inset <= y < size - inset
+            in_inner = (inset + 1) <= x < size - inset - 1 and (inset + 1) <= y < size - inset - 1
+            if in_outer and not in_inner:
                 row += [0x2A, 0x2A, 0x2A]
             else:
                 row += [0, 0, 0]
