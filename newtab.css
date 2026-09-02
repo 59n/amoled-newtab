@@ -105,6 +105,9 @@ blockquote {
   border-style: dashed;
   color: #555;
 }
+.chip { cursor: grab; }
+.chip.add, .chip.empty { cursor: pointer; }
+.chip.dragging { opacity: 0.4; }
 #gear {
   position: fixed;
   top: 14px;

@@ -71,6 +71,7 @@ loadQuote();
 
 const chipsEl = document.getElementById("chips");
 const toastEl = document.getElementById("toast");
+const menu = document.getElementById("menu");
 const MAX_CHIPS = 8;
 let shortcuts = [];
 
@@ -111,6 +112,32 @@ function renderChips() {
     el.addEventListener("click", () => {
       if (isEmptyChip(chip)) openEditor(chip.id);
       else location.assign(chip.url);
+    });
+    el.draggable = true;
+    el.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      openMenu(e.clientX, e.clientY, chip);
+    });
+    el.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", chip.id);
+      el.classList.add("dragging");
+    });
+    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+    el.addEventListener("dragover", (e) => e.preventDefault());
+    el.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      const fromId = e.dataTransfer.getData("text/plain");
+      const toId = chip.id;
+      if (!fromId || fromId === toId) return;
+      const from = shortcuts.findIndex((c) => c.id === fromId);
+      const to = shortcuts.findIndex((c) => c.id === toId);
+      if (from < 0 || to < 0) return;
+      const next = shortcuts.slice();
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      shortcuts = next;
+      await persist();
+      renderChips();
     });
     chipsEl.append(el);
   }
@@ -158,6 +185,43 @@ function closeModal() {
 async function persist() {
   await saveWithToast(() => saveShortcuts(shortcuts), toastEl);
 }
+
+function openMenu(x, y, chip) {
+  menu.replaceChildren();
+  const item = (label, fn) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("role", "menuitem");
+    b.textContent = label;
+    b.addEventListener("click", () => {
+      closeMenu();
+      fn();
+    });
+    menu.append(b);
+  };
+  if (!isEmptyChip(chip)) {
+    item("Edit", () => openEditor(chip.id));
+    item("Clear", async () => {
+      shortcuts = shortcuts.map((c) => (c.id === chip.id ? { ...c, name: "", url: "" } : c));
+      await persist();
+      renderChips();
+    });
+  }
+  item("Delete", async () => {
+    shortcuts = shortcuts.filter((c) => c.id !== chip.id);
+    await persist();
+    renderChips();
+  });
+  menu.classList.remove("hidden");
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+}
+
+function closeMenu() {
+  menu.classList.add("hidden");
+}
+
+document.addEventListener("click", () => closeMenu());
 
 async function saveEditor() {
   const name = fieldName.value.trim();
