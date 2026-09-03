@@ -4,6 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>New Tab</title>
+  <script>
+    // Synchronous pre-paint initialization to eliminate FOUC and button flashing
+    try {
+      const raw = localStorage.getItem("sync:settings");
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.theme) document.documentElement.dataset.theme = s.theme;
+        if (s.accentColor) document.documentElement.dataset.accent = s.accentColor;
+        if (s.glowEffect) document.documentElement.classList.add("has-glow");
+        if (s.scale) document.documentElement.style.setProperty("--page-scale", s.scale);
+        if (s.showZoomControls === false) {
+          document.documentElement.classList.add("hide-zoom");
+        }
+      }
+    } catch {}
+  </script>
   <link rel="stylesheet" href="newtab.css">
 </head>
 <body>
@@ -23,14 +39,16 @@
     </div>
     <blockquote class="quote" id="quote-block">
       <div class="quote-line">
-        <button type="button" id="copy-quote" class="copy-quote" aria-label="Copy quote">
-          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-            <rect x="8" y="8" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="1.8"/>
-          </svg>
-        </button>
-        <p id="quote"></p>
-        <span id="copy-tip" class="copy-tip" role="status">Copied</span>
+        <p>
+          <span id="quote"></span>
+          <button type="button" id="copy-quote" class="copy-quote" aria-label="Copy quote">
+            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+              <rect x="8" y="8" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+            <span id="copy-tip" class="copy-tip" role="status">Copied</span>
+          </button>
+        </p>
       </div>
       <cite id="author"></cite>
     </blockquote>

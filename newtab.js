@@ -554,12 +554,16 @@ async function updateAndSaveSettings(changes) {
 }
 
 function applySettings(cfg, isInitial = false) {
-  // Appearance
+  // Appearance: sync both documentElement and body
+  document.documentElement.dataset.theme = cfg.theme;
   document.body.dataset.theme = cfg.theme;
+  document.documentElement.dataset.accent = cfg.accentColor;
   document.body.dataset.accent = cfg.accentColor;
+  document.documentElement.classList.toggle("has-glow", Boolean(cfg.glowEffect));
   document.body.classList.toggle("has-glow", Boolean(cfg.glowEffect));
 
-  // Only hide the zoom buttons (− / +), NEVER the settings gear!
+  // Instant toggle for zoom buttons (gear icon ALWAYS stays)
+  document.documentElement.classList.toggle("hide-zoom", !cfg.showZoomControls);
   if (zoomButtons) {
     zoomButtons.classList.toggle("hidden", !cfg.showZoomControls);
   } else if (zoomOut && zoomIn) {

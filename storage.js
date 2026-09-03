@@ -28,9 +28,9 @@ export const DEFAULT_SETTINGS = {
   timeFormat: "12h", // "12h", "24h"
   showSeconds: true,
   showDate: false,
-  dateFormat: "medium", // "full", "medium", "numeric"
+  dateFormat: "medium", // "medium", "full", "numeric"
 
-  // Quotes
+  // Quote
   showQuote: true,
   quoteMode: "random", // "random", "custom"
   customQuoteText: "",
@@ -47,18 +47,21 @@ export function isEmptyChip(chip) {
 }
 
 export function newId() {
-  return crypto.randomUUID();
+  return Math.random().toString(36).slice(2, 10);
 }
 
-export function normalizeUrl(raw) {
-  const t = String(raw || "").trim();
-  if (!t) throw new Error("empty");
-  const withScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(t) ? t : `https://${t}`;
-  return new URL(withScheme).href;
+export function normalizeUrl(input) {
+  const trimmed = (input || "").trim();
+  if (!trimmed) throw new Error("empty URL");
+  const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed);
+  const withScheme = hasScheme ? trimmed : `https://${trimmed}`;
+  const u = new URL(withScheme);
+  if (!u.hostname) throw new Error("invalid URL");
+  return u.href;
 }
 
 function hasChromeSync() {
-  return Boolean(globalThis.chrome?.storage?.sync);
+  return typeof chrome !== "undefined" && Boolean(chrome.storage?.sync);
 }
 
 async function getSync(key) {
@@ -75,11 +78,13 @@ async function getSync(key) {
 }
 
 async function setSync(key, val) {
+  try {
+    localStorage.setItem("sync:" + key, JSON.stringify(val));
+  } catch {}
   if (hasChromeSync()) {
     await chrome.storage.sync.set({ [key]: val });
     return;
   }
-  localStorage.setItem("sync:" + key, JSON.stringify(val));
 }
 
 async function getLocal(key) {
@@ -152,11 +157,15 @@ export async function loadSettings() {
   }
 
   if (existing && typeof existing === "object") {
-    return {
+    const merged = {
       ...DEFAULT_SETTINGS,
       ...existing,
       scale: scale !== undefined ? scale : clampScale(existing.scale ?? DEFAULT_SETTINGS.scale),
     };
+    try {
+      localStorage.setItem("sync:settings", JSON.stringify(merged));
+    } catch {}
+    return merged;
   }
 
   const initial = {

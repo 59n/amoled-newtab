@@ -9,10 +9,11 @@
   --chip-bg: #0a0a0a;
   --chip-border: #222222;
   --modal-bg: #0a0a0a;
-  --modal-border: #2a2a2a;
+  --modal-border: #222222;
 }
 
 /* Theme variations */
+:root[data-theme="amoled"],
 body[data-theme="amoled"] {
   --bg-color: #000000;
   --chip-bg: #0a0a0a;
@@ -20,6 +21,7 @@ body[data-theme="amoled"] {
   --modal-bg: #0a0a0a;
   --modal-border: #222222;
 }
+:root[data-theme="charcoal"],
 body[data-theme="charcoal"] {
   --bg-color: #0d0e11;
   --chip-bg: #14161b;
@@ -27,6 +29,7 @@ body[data-theme="charcoal"] {
   --modal-bg: #13151a;
   --modal-border: #282c37;
 }
+:root[data-theme="navy"],
 body[data-theme="navy"] {
   --bg-color: #080c14;
   --chip-bg: #0e1522;
@@ -34,6 +37,7 @@ body[data-theme="navy"] {
   --modal-bg: #0d1420;
   --modal-border: #1d2b42;
 }
+:root[data-theme="matrix"],
 body[data-theme="matrix"] {
   --bg-color: #030804;
   --chip-bg: #071209;
@@ -43,31 +47,37 @@ body[data-theme="matrix"] {
 }
 
 /* Accent color tints */
+:root[data-accent="white"],
 body[data-accent="white"] {
   --accent-color: #f0ebdf;
   --accent-bright: #f7f2e6;
   --text-dim: rgba(206, 196, 176, 0.36);
 }
+:root[data-accent="amber"],
 body[data-accent="amber"] {
   --accent-color: #ffb454;
   --accent-bright: #ffc97a;
   --text-dim: rgba(255, 180, 84, 0.35);
 }
+:root[data-accent="green"],
 body[data-accent="green"] {
   --accent-color: #4ade80;
   --accent-bright: #86efac;
   --text-dim: rgba(74, 222, 128, 0.35);
 }
+:root[data-accent="cyan"],
 body[data-accent="cyan"] {
   --accent-color: #38bdf8;
   --accent-bright: #7dd3fc;
   --text-dim: rgba(56, 189, 248, 0.35);
 }
+:root[data-accent="purple"],
 body[data-accent="purple"] {
   --accent-color: #c084fc;
   --accent-bright: #d8b4fe;
   --text-dim: rgba(192, 132, 252, 0.35);
 }
+:root[data-accent="rose"],
 body[data-accent="rose"] {
   --accent-color: #fb7185;
   --accent-bright: #fda4af;
@@ -87,6 +97,11 @@ html, body {
 
 html { --page-scale: 1; }
 main { zoom: var(--page-scale); }
+
+/* Prevent flashing of zoom buttons when hidden in settings */
+html.hide-zoom #zoom-buttons {
+  display: none !important;
+}
 
 body {
   display: flex;
@@ -175,9 +190,11 @@ main {
 .eyes__tone--bright { color: var(--accent-bright); }
 
 /* Glow effect */
+:root.has-glow .eyes__tone--bright,
 body.has-glow .eyes__tone--bright {
   text-shadow: 0 0 7px var(--accent-color), 0 0 14px var(--accent-color);
 }
+:root.has-glow #clock,
 body.has-glow #clock {
   text-shadow: 0 0 6px var(--accent-color);
 }
@@ -219,7 +236,7 @@ body.has-glow #clock {
 /* Quote */
 .quote {
   position: relative;
-  width: min(30rem, 72vw);
+  width: min(32rem, 76vw);
   min-height: 4.4rem;
   margin: 0;
   overflow: visible;
@@ -230,80 +247,8 @@ body.has-glow #clock {
 
 .quote-line {
   position: relative;
-}
-
-.quote p,
-.quote cite {
-  position: relative;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.copy-quote {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 0;
-  display: grid;
-  place-items: center;
-  width: 1.4rem;
-  height: 1.4rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: rgba(214, 205, 188, 0.28);
-  opacity: 0;
-  pointer-events: none;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  transition: opacity 200ms ease, color 200ms ease;
-}
-
-.copy-quote svg {
-  display: block;
-  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
-}
-
-.quote.is-near .copy-quote,
-.copy-quote:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-  color: rgba(214, 205, 188, 0.38);
-}
-
-.quote.is-near .copy-quote:hover {
-  color: var(--accent-bright);
-}
-
-.copy-tip {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 2;
-  transform: translate(-50%, -50%) translateY(8px);
-  padding: 0.28rem 0.55rem;
-  border: 1px solid rgba(240, 235, 223, 0.16);
-  border-radius: 6px;
-  background: var(--modal-bg);
-  color: var(--text-main);
-  font: 0.68rem/1 system-ui, sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.copy-tip.is-on {
-  animation: copy-pop 1.15s ease forwards;
-}
-
-@keyframes copy-pop {
-  0% { opacity: 0; transform: translate(-50%, -50%) translateY(10px) scale(0.92); }
-  18% { opacity: 1; transform: translate(-50%, -50%) translateY(-6px) scale(1.04); }
-  32% { transform: translate(-50%, -50%) translateY(-10px) scale(1); }
-  70% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-16px) scale(0.98); }
+  display: inline-block;
+  max-width: 100%;
 }
 
 .quote p {
@@ -313,6 +258,74 @@ body.has-glow #clock {
   font-style: italic;
   line-height: 1.55;
   letter-spacing: 0.01em;
+}
+
+.copy-quote {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-left: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(214, 205, 188, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transform: translateY(-1px);
+  transition: opacity 200ms ease, color 200ms ease, transform 150ms ease;
+  position: relative;
+}
+
+.copy-quote svg {
+  display: block;
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8));
+}
+
+.quote.is-near .copy-quote,
+.copy-quote:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  color: rgba(214, 205, 188, 0.45);
+}
+
+.quote.is-near .copy-quote:hover {
+  color: var(--accent-bright);
+  transform: translateY(-1px) scale(1.15);
+}
+
+.copy-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%) translateY(4px);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid rgba(240, 235, 223, 0.16);
+  border-radius: 6px;
+  background: var(--modal-bg);
+  color: var(--text-main);
+  font: 0.65rem/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.copy-tip.is-on {
+  animation: copy-pop 1.15s ease forwards;
+}
+
+@keyframes copy-pop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.92); }
+  18% { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.04); }
+  32% { transform: translateX(-50%) translateY(-3px) scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.98); }
 }
 
 .quote cite, #author {
