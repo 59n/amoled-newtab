@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AMOLED New Tab",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "AMOLED new tab with glitching ASCII, a clock, a quote, and editable shortcuts.",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
