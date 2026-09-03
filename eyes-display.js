@@ -76,6 +76,8 @@ class EyesDisplay {
         this.isDizzy = false
         this.dizzyStart = 0
         this.dizzyUntil = 0
+        this.starsContainer = null
+        this.starEls = []
 
         this.sourceWidth = 288
         this.sourceHeight = 112
@@ -238,6 +240,20 @@ class EyesDisplay {
                 bright: brightTone,
             }
         })
+
+        if (typeof document !== "undefined") {
+            this.starsContainer = document.createElement("div")
+            this.starsContainer.className = "dizzy-stars-container"
+            const starSymbols = ["✦", "★", "✧", "⋆", "✦"]
+            this.starEls = starSymbols.map((char) => {
+                const span = document.createElement("span")
+                span.className = "dizzy-star"
+                span.textContent = char
+                this.starsContainer.appendChild(span)
+                return span
+            })
+            this.element.appendChild(this.starsContainer)
+        }
     }
 
     observeResize() {
@@ -763,9 +779,11 @@ class EyesDisplay {
                 if (timestamp >= this.dizzyUntil) {
                     this.isDizzy = false
                     this.element.classList.remove("eyes-dizzy")
+                    if (this.starsContainer) this.starsContainer.style.display = "none"
                     this.startBlink(timestamp, 140)
                     setTimeout(() => this.startBlink(performance.now(), 120), 180)
                 } else {
+                    this.renderDizzyStars(timestamp)
                     const elapsed = timestamp - this.dizzyStart
                     const angle = elapsed * 0.016
                     const spiralDecay = Math.max(0.35, 1 - elapsed / 1600)
@@ -826,6 +844,47 @@ class EyesDisplay {
         this.focusTarget = target
     }
 
+
+    renderDizzyStars(timestamp) {
+        if (!this.starEls || !this.starEls.length || !this.starsContainer) return
+        this.starsContainer.style.display = "block"
+        const elapsed = timestamp - this.dizzyStart
+        const duration = 1600
+
+        let fade = 1
+        if (elapsed < 200) {
+            fade = elapsed / 200
+        } else if (elapsed > duration - 250) {
+            fade = Math.max(0, (duration - elapsed) / 250)
+        }
+
+        const width = this.element.clientWidth || 300
+        const height = this.element.clientHeight || 100
+        const centerX = width / 2
+        const centerY = height * 0.26
+        const radiusX = Math.min(175, width * 0.42)
+        const radiusY = Math.max(18, height * 0.22)
+        const baseAngle = elapsed * 0.007
+        const count = this.starEls.length
+
+        this.starEls.forEach((star, index) => {
+            const angle = baseAngle + (index * (Math.PI * 2 / count))
+            const cos = Math.cos(angle)
+            const sin = Math.sin(angle)
+            const x = centerX + cos * radiusX
+            const y = centerY + sin * radiusY
+
+            const depth = (sin + 1) / 2
+            const scale = (0.65 + depth * 0.65) * (elapsed > duration - 250 ? 1 + (1 - fade) * 0.35 : 1)
+            const opacity = (0.28 + depth * 0.72) * fade
+            const zIndex = depth > 0.5 ? 25 : 5
+            const rotation = angle * 57.3
+
+            star.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale.toFixed(3)}) rotate(${rotation.toFixed(1)}deg)`
+            star.style.opacity = opacity.toFixed(3)
+            star.style.zIndex = zIndex
+        })
+    }
     triggerDizzy(now) {
         if (this.isDizzy) return
         this.isDizzy = true

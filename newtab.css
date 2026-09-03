@@ -1346,3 +1346,29 @@ body.is-sleeping .eyes {
 .eyes.eyes-dizzy {
   animation: eyes-dizzy-wobble 380ms ease-in-out infinite !important;
 }
+
+/* Star gazing halo when dizzy */
+.dizzy-stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 35;
+  overflow: visible;
+  display: none;
+}
+
+.dizzy-star {
+  position: absolute;
+  font-family: "Courier New", Courier, monospace, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-bright, #fcd34d);
+  text-shadow: 0 0 8px var(--accent-bright, #fcd34d), 0 0 16px var(--accent-aura, rgba(252, 211, 77, 0.5));
+  will-change: transform, opacity;
+  pointer-events: none;
+  user-select: none;
+}
