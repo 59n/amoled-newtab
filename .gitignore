@@ -11,3 +11,6 @@ node_modules/
 .idea/
 .vscode/
 *.log
+
+# Agent Handoff documentation
+HANDOFF.md
