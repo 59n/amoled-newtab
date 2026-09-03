@@ -948,6 +948,11 @@ function applySettings(cfg, isInitial = false) {
   // Scale
   applyScale(cfg.scale, false);
 
+  // Search Bar
+  if (searchContainer) {
+    searchContainer.classList.toggle("hidden", !cfg.showSearchBar);
+  }
+
   // Eyes
   ascii.classList.toggle("hidden", !cfg.showEyes);
   if (eyesDisplay) {
@@ -1055,11 +1060,6 @@ function setupSettingsListeners() {
     settingClickRipples.addEventListener("change", () => {
       updateAndSaveSettings({ clickRipples: settingClickRipples.checked });
     });
-  }
-
-  // Search Bar
-  if (searchContainer) {
-    searchContainer.classList.toggle("hidden", !cfg.showSearchBar);
   }
 
   // Corner Zoom Controls
