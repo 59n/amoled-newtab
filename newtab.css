@@ -510,10 +510,18 @@ body.has-glow #clock {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  background: #161616;
   -webkit-user-drag: none;
   pointer-events: none;
   flex-shrink: 0;
+}
+
+.chip img {
+  background: transparent;
+  object-fit: contain;
+}
+
+.chip .letter {
+  background: #161616;
 }
 
 .chip .letter {

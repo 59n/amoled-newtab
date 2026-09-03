@@ -238,8 +238,13 @@ async function loadQuote() {
 // -------------------------------------------------------------
 function favicon(url) {
   try {
-    const host = new URL(url).hostname;
-    return `https://icons.duckduckgo.com/ip3/${host}.ico`;
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    // Google S2 provides high-contrast contrast-optimized badges for dark/monochrome logos like GitHub
+    // For sites known to be missing in Google S2 (like backtrader), route to DuckDuckGo
+    if (host.includes("backtrader")) {
+      return `https://icons.duckduckgo.com/ip3/${host}.ico`;
+    }
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
   } catch {
     return "";
   }
@@ -295,8 +300,9 @@ function renderChips() {
             stage++;
             try {
               const host = new URL(chip.url).hostname;
+              const cleanHost = host.replace(/^www\./, "");
               if (stage === 1) {
-                img.src = `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
+                img.src = `https://icons.duckduckgo.com/ip3/${cleanHost}.ico`;
               } else if (stage === 2) {
                 img.src = `${new URL(chip.url).origin}/favicon.ico`;
               } else {
