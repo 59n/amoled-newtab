@@ -22,10 +22,49 @@ const CLASSIC_EYES = {
     lookY: 6.2,
 }
 
+const EYE_VARIANTS = {
+    classic: CLASSIC_EYES,
+    sleepy: { ...CLASSIC_EYES, id: "sleepy", upper: 11, upper2: 9, pupilY: 11, irisY: 10, y: 58 },
+    wide: { ...CLASSIC_EYES, id: "wide", halfW: 58, irisX: 14.5, irisY: 15.5, lidC1: 34, lidC2: 22 },
+    squint: { ...CLASSIC_EYES, id: "squint", upper: 12, upper2: 10, halfW: 45, pupilY: 8, irisY: 8.5 },
+    glare: { ...CLASSIC_EYES, id: "glare", upper: 13, upper2: 12, pupilX: 2.8, pupilY: 21, irisX: 10, lookY: 8 },
+    close: { ...CLASSIC_EYES, id: "close", leftX: 92, rightX: 196 },
+    far: { ...CLASSIC_EYES, id: "far", leftX: 58, rightX: 230 },
+}
+
+const DENSITY_RAMPS = {
+    classic: ["\u00b7", "~", "o", "x", "+", "=", "*", "%", "$", "@"],
+    minimal: ["\u00b7", ":", "*", "#", "@"],
+    blocks: ["\u2591", "\u2592", "\u2593", "\u2588"],
+    binary: ["0", "1"],
+    matrix: ["\u00b7", "\uff88", "\uff90", "\uff8b", "\uff73", "\uff7c", "\uff84", "\uff93", "\uff86", "\uff77", "0", "1"],
+}
+
+function pickEyeVariant(variantKey = "classic") {
+    if (variantKey === "random") {
+        const keys = Object.keys(EYE_VARIANTS)
+        const randomKey = keys[Math.floor(Math.random() * keys.length)]
+        return EYE_VARIANTS[randomKey]
+    }
+    return EYE_VARIANTS[variantKey] || EYE_VARIANTS.classic
+}
+
 class EyesDisplay {
-    constructor(element) {
+    constructor(element, options = {}) {
         this.element = element
-        this.variant = CLASSIC_EYES
+        this.options = {
+            variant: "classic",
+            ramp: "classic",
+            follow: true,
+            blinkRate: "normal",
+            ...options,
+        }
+        this.variant = pickEyeVariant(this.options.variant)
+        this.rampId = this.options.ramp in DENSITY_RAMPS ? this.options.ramp : "classic"
+        this.densityChars = DENSITY_RAMPS[this.rampId] || DENSITY_RAMPS.classic
+        this.follow = this.options.follow !== false
+        this.blinkRate = this.options.blinkRate || "normal"
+
         this.sourceWidth = 288
         this.sourceHeight = 112
         this.columns = 64
@@ -33,8 +72,7 @@ class EyesDisplay {
         this.artRows = 28
         this.frameColumns = 9
         this.frameRows = 7
-        this.cacheVersion = "eyes-v21"
-        this.densityChars = ["\u00b7", "~", "o", "x", "+", "=", "*", "%", "$", "@"]
+        this.cacheVersion = "eyes-v22"
         this.frameCache = new Map()
         this.blinkFrame = { bright: "", dim: "" }
         this.canvas = document.createElement("canvas")
@@ -47,7 +85,7 @@ class EyesDisplay {
         this.isBlinking = false
         this.blinkEndsAt = 0
         this.rngState = 0x9e3779b9
-        this.nextBlinkAt = performance.now() + this.randomRange(4500, 9000)
+        this.resetBlinkTimer(performance.now())
         this.resizeObserver = null
         this.isBuildingFrames = false
         this.pendingRebuild = false
@@ -99,6 +137,52 @@ class EyesDisplay {
         requestAnimationFrame(this.animate)
     }
 
+    resetBlinkTimer(timestamp = performance.now()) {
+        if (this.blinkRate === "off") {
+            this.nextBlinkAt = Infinity
+        } else if (this.blinkRate === "calm") {
+            this.nextBlinkAt = timestamp + this.randomRange(9000, 16000)
+        } else if (this.blinkRate === "frequent") {
+            this.nextBlinkAt = timestamp + this.randomRange(2000, 4500)
+        } else {
+            this.nextBlinkAt = timestamp + this.randomRange(4500, 9000)
+        }
+    }
+
+    async updateConfig(newOptions) {
+        let needsRebuild = false
+        if (newOptions.ramp && newOptions.ramp !== this.rampId && DENSITY_RAMPS[newOptions.ramp]) {
+            this.rampId = newOptions.ramp
+            this.densityChars = DENSITY_RAMPS[this.rampId]
+            needsRebuild = true
+        }
+        if (newOptions.variant) {
+            const nextVariant = pickEyeVariant(newOptions.variant)
+            if (nextVariant.id !== this.variant.id) {
+                this.variant = nextVariant
+                needsRebuild = true
+            }
+        }
+        if (typeof newOptions.follow === "boolean") {
+            this.follow = newOptions.follow
+            if (!this.follow) {
+                this.pointer.active = false
+            }
+        }
+        if (newOptions.blinkRate && newOptions.blinkRate !== this.blinkRate) {
+            this.blinkRate = newOptions.blinkRate
+            this.resetBlinkTimer()
+        }
+        if (needsRebuild) {
+            this.frameCache.clear()
+            const hasCachedFrames = this.loadFramesFromCache()
+            if (!hasCachedFrames) {
+                await this.buildFrames()
+            }
+            this.renderFrame(this.getCenterFrameKey(), true)
+        }
+    }
+
     clearCache() {
         for (let index = localStorage.length - 1; index >= 0; index -= 1) {
             const key = localStorage.key(index)
@@ -147,7 +231,7 @@ class EyesDisplay {
     }
 
     observeResize() {
-        if (typeof ResizeObserver === "undefined") {
+        if (!("ResizeObserver" in window)) {
             return
         }
 
@@ -155,48 +239,12 @@ class EyesDisplay {
         this.resizeObserver.observe(this.element)
     }
 
-    async handleResize() {
-        const previousColumns = this.columns
-        const previousRows = this.rows
-        const previousArtRows = this.artRows
-
-        this.updateGridSize()
-
-        if (
-            previousColumns === this.columns &&
-            previousRows === this.rows &&
-            previousArtRows === this.artRows
-        ) {
-            return
-        }
-
+    handleResize() {
         this.renderBackground()
-        const hasCachedFrames = this.loadFramesFromCache()
-
-        if (!hasCachedFrames) {
-            await this.buildFrames()
-        }
-        this.currentGaze = {
-            x: Math.floor(this.frameColumns / 2),
-            y: Math.floor(this.frameRows / 2),
-        }
-        this.renderFrame(this.getCenterFrameKey(), true)
-
     }
 
-    measureCharacter() {
-        const probe = document.createElement("span")
-        probe.textContent = "M"
-        probe.style.position = "absolute"
-        probe.style.visibility = "hidden"
-        probe.style.whiteSpace = "pre"
-        probe.style.left = "0"
-        probe.style.top = "0"
-        probe.style.font = getComputedStyle(this.element).font
-        this.element.appendChild(probe)
-        const rect = probe.getBoundingClientRect()
-        probe.remove()
-
+    getRenderMetrics() {
+        const rect = this.element.getBoundingClientRect()
         return {
             width: rect.width || 1,
             height: rect.height || 1,
@@ -449,6 +497,7 @@ class EyesDisplay {
         return [
             this.cacheVersion,
             this.variant.id,
+            this.rampId,
             this.columns,
             this.rows,
             this.artRows,
@@ -485,16 +534,13 @@ class EyesDisplay {
 
     saveFramesToCache() {
         try {
-            localStorage.setItem(
-                this.getCacheKey(),
-                JSON.stringify({
-                    frames: Array.from(this.frameCache.entries()),
-                    blinkFrame: this.blinkFrame,
-                })
-            )
-        } catch {
-            // Ignore storage failures and keep runtime rendering working.
-        }
+            const payload = {
+                frames: Array.from(this.frameCache.entries()),
+                blinkFrame: this.blinkFrame,
+            }
+
+            localStorage.setItem(this.getCacheKey(), JSON.stringify(payload))
+        } catch {}
     }
 
     isToneFrame(frame) {
@@ -507,6 +553,9 @@ class EyesDisplay {
     }
 
     handlePointerMove(event) {
+        if (!this.follow) {
+            return
+        }
         this.pointer.x = event.clientX
         this.pointer.y = event.clientY
         this.pointer.active = true
@@ -597,7 +646,7 @@ class EyesDisplay {
 
     animate(timestamp) {
         const idleFor = timestamp - this.idleStart
-        const isTracking = this.pointer.active && idleFor < 1800
+        const isTracking = this.follow && this.pointer.active && idleFor < 1800
         const frameInterval = isTracking ? this.activeFrameInterval : this.idleFrameInterval
         const isEnteringIdle = !isTracking && (this.wasTracking || this.pendingIdleBlink)
 
@@ -608,16 +657,18 @@ class EyesDisplay {
 
         this.lastAnimationFrame = timestamp
 
-        if (isEnteringIdle && !this.isBlinking) {
-            this.startBlink(timestamp, 150)
-            this.pendingIdleBlink = false
-        } else if (timestamp >= this.nextBlinkAt && !this.isBlinking) {
-            this.startBlink(timestamp)
+        if (this.blinkRate !== "off") {
+            if (isEnteringIdle && !this.isBlinking) {
+                this.startBlink(timestamp, 150)
+                this.pendingIdleBlink = false
+            } else if (timestamp >= this.nextBlinkAt && !this.isBlinking) {
+                this.startBlink(timestamp)
+            }
         }
 
         if (this.isBlinking && timestamp >= this.blinkEndsAt) {
             this.isBlinking = false
-            this.nextBlinkAt = timestamp + this.randomRange(4500, 9000)
+            this.resetBlinkTimer(timestamp)
         }
 
         if (this.isBlinking) {
@@ -698,4 +749,4 @@ class EyesDisplay {
     }
 }
 
-export { EyesDisplay, CLASSIC_EYES }
+export { EyesDisplay, CLASSIC_EYES, EYE_VARIANTS, DENSITY_RAMPS, pickEyeVariant }

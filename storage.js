@@ -8,6 +8,40 @@ export const DEFAULT_SHORTCUTS = [
   { id: "e3", name: "", url: "" },
 ];
 
+export const DEFAULT_SETTINGS = {
+  // Appearance / Themes
+  theme: "amoled", // "amoled", "charcoal", "navy", "matrix"
+  accentColor: "white", // "white", "amber", "green", "cyan", "purple", "rose"
+  glowEffect: false,
+  scale: 1,
+  showZoomControls: true,
+
+  // ASCII Eyes
+  showEyes: true,
+  eyeVariant: "classic", // "classic", "sleepy", "wide", "squint", "glare", "close", "far", "random"
+  eyeRamp: "classic", // "classic", "minimal", "blocks", "binary", "matrix"
+  eyeFollow: true,
+  eyeBlinkRate: "normal", // "off", "calm", "normal", "frequent"
+
+  // Clock & Date
+  showClock: true,
+  timeFormat: "12h", // "12h", "24h"
+  showSeconds: true,
+  showDate: false,
+  dateFormat: "medium", // "full", "medium", "numeric"
+
+  // Quotes
+  showQuote: true,
+  quoteMode: "random", // "random", "custom"
+  customQuoteText: "",
+  customQuoteAuthor: "",
+
+  // Shortcuts
+  showShortcuts: true,
+  openInNewTab: false,
+  iconStyle: "favicon", // "favicon", "letter", "none"
+};
+
 export function isEmptyChip(chip) {
   return !chip.name && !chip.url;
 }
@@ -96,11 +130,50 @@ export function clampScale(n) {
 }
 
 export async function loadScale() {
-  return clampScale(await getSync("scale"));
+  const settings = await loadSettings();
+  return clampScale(settings.scale);
 }
 
 export async function saveScale(n) {
-  await setSync("scale", clampScale(n));
+  const scale = clampScale(n);
+  await setSync("scale", scale);
+  const settings = await loadSettings();
+  if (settings.scale !== scale) {
+    settings.scale = scale;
+    await setSync("settings", settings);
+  }
+}
+
+export async function loadSettings() {
+  const existing = await getSync("settings");
+  let scale = await getSync("scale");
+  if (scale !== undefined) {
+    scale = clampScale(scale);
+  }
+
+  if (existing && typeof existing === "object") {
+    return {
+      ...DEFAULT_SETTINGS,
+      ...existing,
+      scale: scale !== undefined ? scale : clampScale(existing.scale ?? DEFAULT_SETTINGS.scale),
+    };
+  }
+
+  const initial = {
+    ...DEFAULT_SETTINGS,
+    scale: scale !== undefined ? scale : DEFAULT_SETTINGS.scale,
+  };
+  try {
+    await setSync("settings", initial);
+  } catch {}
+  return initial;
+}
+
+export async function saveSettings(settings) {
+  const merged = { ...DEFAULT_SETTINGS, ...settings };
+  merged.scale = clampScale(merged.scale);
+  await setSync("settings", merged);
+  await setSync("scale", merged.scale);
 }
 
 export async function loadArtCache() {

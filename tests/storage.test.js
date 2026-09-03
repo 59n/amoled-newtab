@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   DEFAULT_SHORTCUTS,
+  DEFAULT_SETTINGS,
   isEmptyChip,
   normalizeUrl,
   loadShortcuts,
@@ -13,6 +14,8 @@ import {
   clampScale,
   loadScale,
   saveScale,
+  loadSettings,
+  saveSettings,
   DEFAULT_SCALE,
 } from "../storage.js";
 
@@ -78,12 +81,30 @@ test("scale persists", async () => {
   assert.equal(await loadScale(), 1.4);
 });
 
+test("loadSettings merges defaults and persists changes", async () => {
+  globalThis.localStorage = new MapStorage();
+  const settings = await loadSettings();
+  assert.equal(settings.theme, "amoled");
+  assert.equal(settings.timeFormat, "12h");
+  assert.equal(settings.eyeVariant, "classic");
+
+  await saveSettings({ ...settings, theme: "matrix", timeFormat: "24h", eyeVariant: "wide" });
+  const updated = await loadSettings();
+  assert.equal(updated.theme, "matrix");
+  assert.equal(updated.timeFormat, "24h");
+  assert.equal(updated.eyeVariant, "wide");
+  assert.equal(updated.showClock, true);
+});
+
 test("corrupt localStorage is treated as a cache miss", async () => {
   globalThis.localStorage = new MapStorage();
   localStorage.setItem("sync:shortcuts", "not-json");
+  localStorage.setItem("sync:settings", "not-json");
   localStorage.setItem("local:drawnArt", "not-json");
   const shortcuts = await loadShortcuts();
   assert.equal(shortcuts.length, 7);
+  const settings = await loadSettings();
+  assert.equal(settings.theme, DEFAULT_SETTINGS.theme);
   assert.equal(await loadArtCache(), null);
 });
 

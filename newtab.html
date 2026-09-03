@@ -10,12 +10,15 @@
   <div id="zoom-controls">
     <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
     <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
-    <button id="gear" type="button" aria-label="Shortcuts">⚙</button>
+    <button id="gear" type="button" aria-label="Settings">⚙</button>
   </div>
 
   <main>
     <div id="ascii" class="eyes" aria-label="ASCII art"></div>
-    <time id="clock" class="time"></time>
+    <div id="clock-container">
+      <time id="clock" class="time"></time>
+      <div id="date" class="date hidden"></div>
+    </div>
     <blockquote class="quote" id="quote-block">
       <div class="quote-line">
         <button type="button" id="copy-quote" class="copy-quote" aria-label="Copy quote">
@@ -32,6 +35,7 @@
     <nav id="chips" aria-label="Shortcuts"></nav>
   </main>
 
+  <!-- Shortcut editor modal -->
   <div id="modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-card">
       <h2 id="modal-title">Shortcut</h2>
@@ -45,19 +49,321 @@
     </div>
   </div>
 
+  <!-- Advanced Settings modal with tabs -->
   <div id="overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
     <div class="overlay-card">
-      <h2 id="overlay-title">Settings</h2>
-      <div class="scale-row">
-        <span>Size</span>
-        <button id="scale-down" type="button" aria-label="Smaller">−</button>
-        <input id="scale-range" type="range" min="70" max="200" step="10" value="100">
-        <button id="scale-up" type="button" aria-label="Bigger">+</button>
-        <span id="scale-label">100%</span>
+      <div class="overlay-header">
+        <h2 id="overlay-title">Settings</h2>
+        <button id="overlay-close" type="button" class="btn-close" aria-label="Close settings">&times;</button>
       </div>
-      <h2>Shortcuts</h2>
-      <ul id="overlay-list"></ul>
-      <button id="overlay-add" type="button">+ add</button>
+
+      <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
+        <button role="tab" type="button" class="tab-btn active" data-tab="tab-appearance" id="tab-btn-appearance" aria-selected="true" aria-controls="tab-appearance">Appearance</button>
+        <button role="tab" type="button" class="tab-btn" data-tab="tab-eyes" id="tab-btn-eyes" aria-selected="false" aria-controls="tab-eyes">Eyes</button>
+        <button role="tab" type="button" class="tab-btn" data-tab="tab-clock" id="tab-btn-clock" aria-selected="false" aria-controls="tab-clock">Clock & Quote</button>
+        <button role="tab" type="button" class="tab-btn" data-tab="tab-shortcuts" id="tab-btn-shortcuts" aria-selected="false" aria-controls="tab-shortcuts">Shortcuts</button>
+        <button role="tab" type="button" class="tab-btn" data-tab="tab-data" id="tab-btn-data" aria-selected="false" aria-controls="tab-data">Data</button>
+      </nav>
+
+      <div class="settings-body">
+        <!-- Tab 1: Appearance -->
+        <section id="tab-appearance" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-appearance">
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-theme">Theme Background</label>
+              <span class="setting-desc">Base background color tone</span>
+            </div>
+            <select id="setting-theme">
+              <option value="amoled">Pure AMOLED Black (#000000)</option>
+              <option value="charcoal">Midnight Charcoal</option>
+              <option value="navy">Abyss Navy</option>
+              <option value="matrix">Matrix Dark</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label>Accent Color</label>
+              <span class="setting-desc">Highlights, clock, and focus accents</span>
+            </div>
+            <div class="color-picker-group" id="accent-swatches">
+              <button type="button" class="color-swatch-btn active" data-color="white" style="--swatch:#f0ebdf" title="Warm White"></button>
+              <button type="button" class="color-swatch-btn" data-color="amber" style="--swatch:#ffb454" title="Cyber Amber"></button>
+              <button type="button" class="color-swatch-btn" data-color="green" style="--swatch:#4ade80" title="Terminal Green"></button>
+              <button type="button" class="color-swatch-btn" data-color="cyan" style="--swatch:#38bdf8" title="Ice Cyan"></button>
+              <button type="button" class="color-swatch-btn" data-color="purple" style="--swatch:#c084fc" title="Synthwave Purple"></button>
+              <button type="button" class="color-swatch-btn" data-color="rose" style="--swatch:#fb7185" title="Sunset Rose"></button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-glow">Glow Effect</label>
+              <span class="setting-desc">Subtle CRT / phosphor illumination</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-glow">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="scale-range">UI Scale</label>
+              <span class="setting-desc">Magnification (70% – 200%)</span>
+            </div>
+            <div class="scale-row-inline">
+              <button id="scale-down" type="button" aria-label="Smaller">−</button>
+              <input id="scale-range" type="range" min="70" max="200" step="10" value="100">
+              <button id="scale-up" type="button" aria-label="Bigger">+</button>
+              <span id="scale-label">100%</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-zoom">Corner Zoom Buttons</label>
+              <span class="setting-desc">Show − / + buttons beside the settings gear</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-zoom">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Tab 2: Eyes -->
+        <section id="tab-eyes" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-eyes">
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-eyes">Display Eyes</label>
+              <span class="setting-desc">Show the interactive ASCII eyes</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-eyes">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-eye-variant">Eye Style</label>
+              <span class="setting-desc">Eye shape and gaze expression</span>
+            </div>
+            <select id="setting-eye-variant">
+              <option value="classic">Classic</option>
+              <option value="sleepy">Sleepy</option>
+              <option value="wide">Wide</option>
+              <option value="squint">Squint</option>
+              <option value="glare">Glare</option>
+              <option value="close">Close-set</option>
+              <option value="far">Wide-set</option>
+              <option value="random">Random per tab</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-eye-ramp">ASCII Density Ramp</label>
+              <span class="setting-desc">Characters used for luminance shading</span>
+            </div>
+            <select id="setting-eye-ramp">
+              <option value="classic">Classic (· ~ o x + = * % $ @)</option>
+              <option value="minimal">Minimal (· : * # @)</option>
+              <option value="blocks">Blocks (░ ▒ ▓ █)</option>
+              <option value="binary">Binary (0 1)</option>
+              <option value="matrix">Matrix (· ﾊ ﾐ ﾋ ｳ ｼ ﾅ 0 1)</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-eye-follow">Follow Cursor</label>
+              <span class="setting-desc">Pupils track pointer movement</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-eye-follow">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-eye-blink">Blink Frequency</label>
+              <span class="setting-desc">Frequency of automatic natural blinks</span>
+            </div>
+            <select id="setting-eye-blink">
+              <option value="normal">Normal (4.5s – 9s)</option>
+              <option value="calm">Calm (9s – 16s)</option>
+              <option value="frequent">Frequent (2s – 4.5s)</option>
+              <option value="off">Off (Reactions only)</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Tab 3: Clock & Quote -->
+        <section id="tab-clock" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-clock">
+          <div class="settings-subhead">Clock</div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-clock">Display Clock</label>
+              <span class="setting-desc">Show current time</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-clock">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-time-format">Time Format</label>
+              <span class="setting-desc">12-hour or 24-hour mode</span>
+            </div>
+            <select id="setting-time-format">
+              <option value="12h">12-Hour (3:13 PM)</option>
+              <option value="24h">24-Hour (15:13)</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-seconds">Show Seconds</label>
+              <span class="setting-desc">Include seconds counter in clock</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-seconds">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-date">Display Date</label>
+              <span class="setting-desc">Show date beneath the clock</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-date">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row" id="row-date-format">
+            <div class="setting-info">
+              <label for="setting-date-format">Date Format</label>
+              <span class="setting-desc">Format for the date string</span>
+            </div>
+            <select id="setting-date-format">
+              <option value="medium">Medium (Thu, Sep 3, 2026)</option>
+              <option value="full">Full (Thursday, September 3, 2026)</option>
+              <option value="numeric">ISO (2026-09-03)</option>
+            </select>
+          </div>
+
+          <div class="settings-subhead">Quote</div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-quote">Display Quote</label>
+              <span class="setting-desc">Show inspirational quote and author</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-quote">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-quote-mode">Quote Mode</label>
+              <span class="setting-desc">Random online quotes or your own motto</span>
+            </div>
+            <select id="setting-quote-mode">
+              <option value="random">Random Quotes</option>
+              <option value="custom">Custom Motto</option>
+            </select>
+          </div>
+
+          <div id="custom-quote-fields" class="setting-block hidden">
+            <label for="setting-custom-text" class="field-label">Custom Quote Text</label>
+            <textarea id="setting-custom-text" rows="2" placeholder="Your custom quote or motto..."></textarea>
+            <label for="setting-custom-author" class="field-label" style="margin-top: 0.5rem;">Author / Source</label>
+            <input type="text" id="setting-custom-author" placeholder="Author name">
+          </div>
+        </section>
+
+        <!-- Tab 4: Shortcuts -->
+        <section id="tab-shortcuts" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-shortcuts">
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-shortcuts">Display Shortcuts</label>
+              <span class="setting-desc">Show quick link chips</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-shortcuts">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-open-new-tab">Open in New Tab</label>
+              <span class="setting-desc">Left-click opens shortcut in a new tab</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-open-new-tab">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-icon-style">Icon Style</label>
+              <span class="setting-desc">Visual presentation of shortcut chips</span>
+            </div>
+            <select id="setting-icon-style">
+              <option value="favicon">Favicon</option>
+              <option value="letter">Letter Badge</option>
+              <option value="none">Text Only</option>
+            </select>
+          </div>
+
+          <div class="settings-subhead">Manage Shortcuts (Max 8)</div>
+          <ul id="overlay-list"></ul>
+          <button id="overlay-add" type="button">+ Add Shortcut</button>
+        </section>
+
+        <!-- Tab 5: Data -->
+        <section id="tab-data" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-data">
+          <div class="setting-row">
+            <div class="setting-info">
+              <label>Export Backup</label>
+              <span class="setting-desc">Save your configuration and shortcuts as JSON</span>
+            </div>
+            <button type="button" id="btn-export" class="btn-action">Export JSON</button>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label>Import Backup</label>
+              <span class="setting-desc">Restore settings and shortcuts from JSON file</span>
+            </div>
+            <label class="btn-action file-upload-btn">
+              Import JSON
+              <input type="file" id="file-import" accept=".json" class="hidden">
+            </label>
+          </div>
+
+          <div class="setting-row danger-row">
+            <div class="setting-info">
+              <label>Reset to Defaults</label>
+              <span class="setting-desc">Restore original factory settings and shortcuts</span>
+            </div>
+            <button type="button" id="btn-reset" class="btn-danger">Reset All</button>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 

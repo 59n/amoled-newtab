@@ -1,6 +1,6 @@
 # AMOLED New Tab
 
-A clean, true-black (`#000000`) new-tab extension for Chromium browsers featuring an interactive pair of ASCII eyes that track your cursor, a live clock, curated inspirational quotes, and customizable shortcut chips.
+A clean, true-black (`#000000`) new-tab extension for Chromium browsers featuring an interactive pair of ASCII eyes that track your cursor, a live clock, curated inspirational quotes, customizable shortcut chips, and an advanced tabbed customization suite.
 
 Zero dependencies. Zero tracking. Pure vanilla web technologies.
 
@@ -9,27 +9,37 @@ Zero dependencies. Zero tracking. Pure vanilla web technologies.
 ## Features
 
 - **Interactive ASCII Eyes**: 
-  - Dynamic gaze tracking: Pupil position follows the cursor across a precomputed 9×7 gaze grid.
-  - Natural animations: Periodic blinks, natural idle wandering drift, and double-blink on click.
+  - Dynamic gaze tracking: Pupil position follows the cursor across a precomputed 9×7 gaze grid (can be toggled on/off).
+  - Multiple eye styles: Choose from **Classic**, **Sleepy**, **Wide**, **Squint**, **Glare**, **Close-set**, **Wide-set**, or **Random per tab**.
+  - Density ramps: Switch between **Classic** (`· ~ o x + = * % $ @`), **Minimal** (`· : * # @`), **Blocks** (`░ ▒ ▓ █`), **Binary** (`0 1`), or **Matrix Katakana** (`· ﾊ ﾐ ﾋ ｳ ｼ ﾅ 0 1`).
+  - Natural animations: Configurable blink rates (**Normal**, **Calm**, **Frequent**, or **Off**), natural idle wandering drift, and double-blink on click.
   - Reactive gaze: Averts gaze and squeezes shut on right-click; looks up/down on scroll-wheel events.
-  - Glitch-free rendering: Precomputed SVG rasterization mapped to an ASCII density ramp (`· ~ o x + = * % $ @`) rendered with dual-layer buffers to eliminate flicker.
-- **Live Clock**: 12-hour format with seconds (`H:MM:SS AM/PM`) updated in real-time.
-- **Inspirational Quotes**:
-  - Fetches random quotes from [Quotable](https://api.quotable.io) with fallback to [DummyJSON](https://dummyjson.com).
-  - Cached locally with bundled offline fallbacks (`fallbacks.json`).
-  - Subtle hover-activated copy button behind the quote text with visual "Copied" feedback.
+  - Dual-layer rendering to eliminate flicker.
+- **Themes & Accent Colors**:
+  - Background themes: **Pure AMOLED Black** (`#000000`), **Midnight Charcoal**, **Abyss Navy**, or **Matrix Dark**.
+  - Vibrant accent color tints: **Warm White**, **Cyber Amber**, **Terminal Green**, **Ice Cyan**, **Synthwave Purple**, and **Sunset Rose**.
+  - Phosphor / CRT Glow: Subtle neon luminescence on eyes and clock.
+- **Live Clock & Date**:
+  - 12-hour or 24-hour time formats.
+  - Optional seconds counter toggle.
+  - Optional date display with multiple formats (**Medium**, **Full**, or **ISO Numeric**).
+- **Inspirational Quotes & Custom Mottos**:
+  - Fetches random quotes from [Quotable](https://api.quotable.io) or [DummyJSON](https://dummyjson.com) with offline fallbacks (`fallbacks.json`).
+  - Custom Motto mode: Set your own personal motto and author text.
+  - Discreet copy button with visual "Copied" feedback.
 - **Customizable Shortcuts**:
-  - Up to 8 launch chips with automatic favicon resolution (defaults: YouTube, GitHub, Reddit, Cronometer).
+  - Up to 8 launch chips with automatic favicon resolution, letter badge mode, or text-only mode.
   - Drag-and-drop reordering.
-  - Left-click to open in the same tab; middle-click / `Cmd`/`Ctrl`+click to open in a new tab.
-  - Right-click context menu to edit, clear, or delete.
+  - Optional "Open in new tab" left-click toggle.
+  - Context menu to edit, clear, or delete.
   - Modal editor with automatic `https://` prefixing and URL validation.
 - **Custom Zoom & Scaling**:
-  - Global scaling from 70% to 200% in 10% steps via top-right `−`/`+` buttons or the settings slider.
+  - Global scaling from 70% to 200% in 10% steps via settings slider or corner `−`/`+` buttons (with toggle to hide corner buttons).
   - Preferences persisted across sessions via `chrome.storage.sync`.
-- **Minimalist Settings Panel**:
+- **Comprehensive Tabbed Settings Panel**:
   - Accessible via the gear icon (`⚙`) in the top right.
-  - Manage shortcut order (up/down), edit, clear, delete, or add new shortcuts.
+  - Organized tabs: **Appearance**, **Eyes**, **Clock & Quote**, **Shortcuts**, and **Data**.
+  - Backup & Restore: Export configuration to JSON, import backups, and reset to defaults.
   - Keyboard accessible (`Escape` closes all modals, menus, and overlays).
 
 ## Installation
@@ -46,21 +56,21 @@ Zero dependencies. Zero tracking. Pure vanilla web technologies.
 
 | Component | Control / Gesture | Action |
 | --- | --- | --- |
-| **Eyes** | Mouse move | Pupils follow cursor |
+| **Eyes** | Mouse move | Pupils follow cursor (when enabled) |
 | | Idle | Natural wandering & periodic blink |
 | | Scroll wheel | Looks up or down then blinks |
 | | Left-click | Double blink |
 | | Right-click | Averts gaze and closes eyes |
 | **Quote** | Hover near quote | Reveals discreet copy icon |
 | | Click copy icon | Copies `<quote> — <author>` to clipboard |
-| **Shortcuts** | Left-click | Open link in current tab |
+| **Shortcuts** | Left-click | Open link (current tab or new tab based on settings) |
 | | Middle-click / `Ctrl`/`Cmd`+Click | Open link in new tab |
 | | Drag & drop | Reorder chips |
 | | Right-click | Open context menu (Edit, Clear, Delete) |
 | | `+ add` button | Add a new shortcut |
 | **Zoom** | `−` / `+` buttons | Adjust scale by 10% |
 | | Settings slider | Fine-tune zoom between 70% and 200% |
-| **Settings** | `⚙` (top-right) | Open full shortcut manager & zoom controls |
+| **Settings** | `⚙` (top-right) | Open tabbed settings modal |
 | **General** | `Escape` key | Close any open modal, menu, or overlay |
 
 > For more details on usage, see [docs/usage.md](docs/usage.md).
@@ -72,11 +82,11 @@ Built strictly with vanilla Manifest V3 standards—no bundlers, no build steps,
 ```
 ├── manifest.json       # Chrome Manifest V3 configuration & permissions
 ├── newtab.html         # Clean DOM shell (eyes, clock, quote, shortcuts, modals)
-├── newtab.css          # Pure AMOLED (#000000) styling & responsive layout
-├── newtab.js           # Clock, quote fetching, copy tool, chip logic, zoom
-├── eyes-display.js     # Canvas-rasterized SVG to ASCII eye animation engine
-├── storage.js          # chrome.storage.sync & chrome.storage.local with localStorage fallbacks
-├── ascii.js            # Quote truncation and character processing utilities
+├── newtab.css          # AMOLED styling, themes, glow effects, tabbed settings
+├── newtab.js           # Clock, quote logic, shortcuts, settings synchronization
+├── eyes-display.js     # Multi-variant & density-ramp ASCII eye animation engine
+├── storage.js          # Settings & shortcuts persistence with chrome.storage.sync
+├── ascii.js            # Text utilities & legacy ASCII functions
 ├── fallbacks.json      # Bundled offline fallback quotes
 ├── icons/              # Extension icons (16px, 48px, 128px)
 ├── scripts/            # Helper scripts (e.g. icon generation)
