@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS = {
   eyeRamp: "classic", // "classic", "minimal", "blocks", "binary", "matrix"
   eyeFollow: true,
   eyeBlinkRate: "normal", // "off", "calm", "normal", "frequent"
+  eyeIdleSleep: true,
 
   // Clock & Date
   showClock: true,
@@ -42,6 +43,7 @@ export const DEFAULT_SETTINGS = {
   showShortcuts: true,
   openInNewTab: false,
   iconStyle: "favicon", // "favicon", "letter", "none"
+  keyboardShortcuts: true,
 };
 
 export function isEmptyChip(chip) {

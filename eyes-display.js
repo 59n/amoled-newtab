@@ -64,6 +64,8 @@ class EyesDisplay {
         this.densityChars = DENSITY_RAMPS[this.rampId] || DENSITY_RAMPS.classic
         this.follow = this.options.follow !== false
         this.blinkRate = this.options.blinkRate || "normal"
+        this.idleSleep = this.options.idleSleep !== false
+        this.isSleeping = false
 
         this.sourceWidth = 288
         this.sourceHeight = 112
@@ -178,6 +180,12 @@ class EyesDisplay {
         if (newOptions.blinkRate && newOptions.blinkRate !== this.blinkRate) {
             this.blinkRate = newOptions.blinkRate
             this.resetBlinkTimer()
+        }
+        if (typeof newOptions.idleSleep === "boolean") {
+            this.idleSleep = newOptions.idleSleep
+            if (!this.idleSleep && this.isSleeping) {
+                this.wakeUp()
+            }
         }
         if (needsRebuild) {
             this.frameCache.clear()
@@ -666,6 +674,14 @@ class EyesDisplay {
 
         this.lastAnimationFrame = timestamp
 
+        if (this.isSleeping) {
+            if (this.lastRenderedFrame !== "sleep") {
+                this.swapFrame(this.blinkFrame, "sleep")
+            }
+            requestAnimationFrame(this.animate)
+            return
+        }
+
         if (this.blinkRate !== "off") {
             if (isEnteringIdle && !this.isBlinking) {
                 this.startBlink(timestamp, 150)
@@ -708,6 +724,20 @@ class EyesDisplay {
 
         this.wasTracking = isTracking
         requestAnimationFrame(this.animate)
+    }
+
+    sleep() {
+        if (!this.idleSleep || this.isSleeping) return
+        this.isSleeping = true
+        this.swapFrame(this.blinkFrame, "sleep")
+    }
+
+    wakeUp() {
+        if (!this.isSleeping) return
+        this.isSleeping = false
+        const now = performance.now()
+        this.startBlink(now, 160)
+        this.resetBlinkTimer(now)
     }
 
     startBlink(timestamp, duration = 130) {

@@ -57,6 +57,7 @@ const settingEyeVariant = document.getElementById("setting-eye-variant");
 const settingEyeRamp = document.getElementById("setting-eye-ramp");
 const settingEyeFollow = document.getElementById("setting-eye-follow");
 const settingEyeBlink = document.getElementById("setting-eye-blink");
+const settingEyeSleep = document.getElementById("setting-eye-sleep");
 const settingShowClock = document.getElementById("setting-show-clock");
 const settingTimeFormat = document.getElementById("setting-time-format");
 const settingShowSeconds = document.getElementById("setting-show-seconds");
@@ -71,6 +72,7 @@ const settingCustomAuthor = document.getElementById("setting-custom-author");
 const settingShowShortcuts = document.getElementById("setting-show-shortcuts");
 const settingOpenNewTab = document.getElementById("setting-open-new-tab");
 const settingIconStyle = document.getElementById("setting-icon-style");
+const settingKeyboardShortcuts = document.getElementById("setting-keyboard-shortcuts");
 const btnExport = document.getElementById("btn-export");
 const fileImport = document.getElementById("file-import");
 const btnReset = document.getElementById("btn-reset");
@@ -155,6 +157,67 @@ function tick() {
   }
 
   clockContainer.classList.toggle("hidden", !settings.showClock && !settings.showDate);
+  checkIdleSleep();
+}
+
+let lastUserActivity = Date.now();
+const IDLE_SLEEP_TIMEOUT = 35000;
+
+function noteUserActivity() {
+  lastUserActivity = Date.now();
+  if (document.body.classList.contains("is-sleeping")) {
+    document.body.classList.remove("is-sleeping");
+    if (eyesDisplay) {
+      eyesDisplay.wakeUp();
+    }
+  }
+}
+
+function checkIdleSleep() {
+  if (!settings.eyeIdleSleep || !settings.showEyes) return;
+  if (document.body.classList.contains("is-sleeping")) return;
+  if (!modal.classList.contains("hidden") || !overlay.classList.contains("hidden")) return;
+
+  if (Date.now() - lastUserActivity >= IDLE_SLEEP_TIMEOUT) {
+    document.body.classList.add("is-sleeping");
+    if (eyesDisplay) {
+      eyesDisplay.sleep();
+    }
+  }
+}
+
+function setupIdleAndHotkeys() {
+  ["mousemove", "mousedown", "keydown", "touchstart", "touchmove", "wheel", "pointermove"].forEach((ev) => {
+    window.addEventListener(ev, noteUserActivity, { passive: true });
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (!settings.keyboardShortcuts) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (document.activeElement && ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+    if (!modal.classList.contains("hidden") || !overlay.classList.contains("hidden")) return;
+
+    if (e.key >= "1" && e.key <= "8") {
+      const idx = parseInt(e.key, 10) - 1;
+      const chip = shortcuts[idx];
+      if (chip && !isEmptyChip(chip) && chip.url) {
+        e.preventDefault();
+        const chipEls = chipsEl.querySelectorAll(".chip:not(.add)");
+        const targetEl = chipEls[idx];
+        if (targetEl) {
+          targetEl.classList.add("chip-hotkey-press");
+          setTimeout(() => targetEl.classList.remove("chip-hotkey-press"), 200);
+        }
+        setTimeout(() => {
+          if (settings.openInNewTab) {
+            window.open(chip.url, "_blank", "noopener,noreferrer");
+          } else {
+            window.location.href = chip.url;
+          }
+        }, 90);
+      }
+    }
+  });
 }
 
 // -------------------------------------------------------------
@@ -282,6 +345,11 @@ function renderChips() {
     if (empty) {
       el.setAttribute("aria-label", "Empty shortcut");
     } else {
+      const chipIndex = shortcuts.indexOf(chip);
+      if (chipIndex >= 0 && chipIndex < 8) {
+        el.title = `${chip.name} [${chipIndex + 1}]`;
+        el.setAttribute("aria-keyshortcuts", String(chipIndex + 1));
+      }
       if (settings.iconStyle === "none") {
         el.classList.add("no-icon");
       } else if (settings.iconStyle === "letter") {
@@ -833,6 +901,7 @@ function applySettings(cfg, isInitial = false) {
       ramp: cfg.eyeRamp,
       follow: cfg.eyeFollow,
       blinkRate: cfg.eyeBlinkRate,
+      idleSleep: cfg.eyeIdleSleep,
     });
   }
 
@@ -871,6 +940,7 @@ function syncSettingsForm() {
   settingEyeRamp.value = settings.eyeRamp;
   settingEyeFollow.checked = Boolean(settings.eyeFollow);
   settingEyeBlink.value = settings.eyeBlinkRate;
+  if (settingEyeSleep) settingEyeSleep.checked = Boolean(settings.eyeIdleSleep);
 
   settingShowClock.checked = Boolean(settings.showClock);
   settingTimeFormat.value = settings.timeFormat;
@@ -888,6 +958,7 @@ function syncSettingsForm() {
   settingShowShortcuts.checked = Boolean(settings.showShortcuts);
   settingOpenNewTab.checked = Boolean(settings.openInNewTab);
   settingIconStyle.value = settings.iconStyle;
+  if (settingKeyboardShortcuts) settingKeyboardShortcuts.checked = Boolean(settings.keyboardShortcuts);
 }
 
 function setupSettingsListeners() {
@@ -943,6 +1014,15 @@ function setupSettingsListeners() {
   settingEyeBlink.addEventListener("change", () => {
     updateAndSaveSettings({ eyeBlinkRate: settingEyeBlink.value });
   });
+  if (settingEyeSleep) {
+    settingEyeSleep.addEventListener("change", () => {
+      updateAndSaveSettings({ eyeIdleSleep: settingEyeSleep.checked });
+      if (!settingEyeSleep.checked && document.body.classList.contains("is-sleeping")) {
+        document.body.classList.remove("is-sleeping");
+        if (eyesDisplay) eyesDisplay.wakeUp();
+      }
+    });
+  }
 
   // Clock
   settingShowClock.addEventListener("change", () => {
@@ -988,6 +1068,11 @@ function setupSettingsListeners() {
   settingIconStyle.addEventListener("change", () => {
     updateAndSaveSettings({ iconStyle: settingIconStyle.value });
   });
+  if (settingKeyboardShortcuts) {
+    settingKeyboardShortcuts.addEventListener("change", () => {
+      updateAndSaveSettings({ keyboardShortcuts: settingKeyboardShortcuts.checked });
+    });
+  }
 
   // Data: Export
   btnExport.addEventListener("click", () => {
@@ -1123,6 +1208,7 @@ async function init() {
     ramp: settings.eyeRamp,
     follow: settings.eyeFollow,
     blinkRate: settings.eyeBlinkRate,
+    idleSleep: settings.eyeIdleSleep,
   });
 
   applySettings(settings, true);
@@ -1135,6 +1221,7 @@ async function init() {
   setupScrollPhysics();
   loadQuote();
   renderChips();
+  setupIdleAndHotkeys();
 
   tick();
   setInterval(tick, 1000);

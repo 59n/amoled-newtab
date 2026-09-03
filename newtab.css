@@ -506,6 +506,14 @@ body.has-glow #clock {
   transform: scale(0.96);
 }
 
+.chip.chip-hotkey-press {
+  transform: scale(0.92) !important;
+  border-color: var(--accent-bright) !important;
+  color: var(--accent-bright) !important;
+  box-shadow: 0 0 14px var(--accent-aura);
+  transition: transform 80ms ease, border-color 80ms ease;
+}
+
 .chip img, .chip .letter {
   width: 16px;
   height: 16px;
@@ -1297,5 +1305,21 @@ input:checked + .slider:before {
 
   .setting-row {
     padding: 0.65rem 0;
+  }
+}
+
+/* Sleep breathing animation for ASCII eyes */
+body.is-sleeping .eyes {
+  animation: eye-sleep-breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes eye-sleep-breathe {
+  0%, 100% {
+    opacity: 0.65;
+    transform: scale(0.996);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.004);
   }
 }
