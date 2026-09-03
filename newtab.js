@@ -520,32 +520,113 @@ window.addEventListener("contextmenu", (e) => {
   openBackgroundMenu(e.clientX, e.clientY);
 });
 
+// Mobile Long-Press Context Menu Support
+function setupLongPress() {
+  let touchTimer = null;
+  let startX = 0;
+  let startY = 0;
+  let hasMoved = false;
+
+  window.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    hasMoved = false;
+
+    // Ignore if touching inside active modal/overlay or interactive form buttons
+    if (e.target.closest("#modal") || e.target.closest("#overlay") || ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(e.target.tagName)) {
+      return;
+    }
+
+    clearTimeout(touchTimer);
+    touchTimer = setTimeout(() => {
+      if (hasMoved) return;
+      try { navigator.vibrate?.(25); } catch {}
+
+      const chipEl = e.target.closest(".chip");
+      if (chipEl && chipEl.dataset.id) {
+        const chip = shortcuts.find((c) => c.id === chipEl.dataset.id);
+        if (chip) {
+          openChipMenu(startX, startY, chip);
+          return;
+        }
+      }
+      openBackgroundMenu(startX, startY);
+    }, 450);
+  }, { passive: true });
+
+  window.addEventListener("touchmove", (e) => {
+    if (!touchTimer) return;
+    const touch = e.touches[0];
+    if (Math.hypot(touch.clientX - startX, touch.clientY - startY) > 12) {
+      hasMoved = true;
+      clearTimeout(touchTimer);
+    }
+  }, { passive: true });
+
+  window.addEventListener("touchend", () => {
+    clearTimeout(touchTimer);
+  }, { passive: true });
+
+  window.addEventListener("touchcancel", () => {
+    clearTimeout(touchTimer);
+  }, { passive: true });
+}
+
 // -------------------------------------------------------------
 // Mouse Cursor Aura & Click Shockwaves
 // -------------------------------------------------------------
 function setupCursorAura() {
   if (!cursorAuraEl) return;
   let auraRaf = null;
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
+  let posX = window.innerWidth / 2;
+  let posY = window.innerHeight / 2;
+  let touchHideTimer = null;
 
-  window.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+  function updateAura(x, y) {
+    posX = x;
+    posY = y;
     if (!cursorAuraEl.classList.contains("active")) {
       cursorAuraEl.classList.add("active");
     }
     if (!auraRaf) {
       auraRaf = requestAnimationFrame(() => {
-        cursorAuraEl.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        cursorAuraEl.style.transform = "translate3d(" + posX + "px, " + posY + "px, 0)";
         auraRaf = null;
       });
     }
+  }
+
+  window.addEventListener("mousemove", (e) => {
+    updateAura(e.clientX, e.clientY);
   }, { passive: true });
 
   document.addEventListener("mouseleave", () => {
     cursorAuraEl.classList.remove("active");
   });
+
+  // Touch tracking for mobile
+  window.addEventListener("touchstart", (e) => {
+    clearTimeout(touchHideTimer);
+    if (e.touches && e.touches[0]) {
+      updateAura(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  window.addEventListener("touchmove", (e) => {
+    clearTimeout(touchHideTimer);
+    if (e.touches && e.touches[0]) {
+      updateAura(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  window.addEventListener("touchend", () => {
+    clearTimeout(touchHideTimer);
+    touchHideTimer = setTimeout(() => {
+      cursorAuraEl.classList.remove("active");
+    }, 450);
+  }, { passive: true });
 }
 
 function setupClickRipples() {
@@ -1016,6 +1097,7 @@ async function init() {
   setupSettingsTabs();
   setupSettingsListeners();
   setupQuoteCopy();
+  setupLongPress();
   setupCursorAura();
   setupClickRipples();
   setupScrollPhysics();

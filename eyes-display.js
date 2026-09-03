@@ -110,6 +110,8 @@ class EyesDisplay {
 
         this.handlePointerMove = this.handlePointerMove.bind(this)
         this.handlePointerLeave = this.handlePointerLeave.bind(this)
+        this.handleTouchMove = this.handleTouchMove.bind(this)
+        this.handleTouchEnd = this.handleTouchEnd.bind(this)
         this.handleWheel = this.handleWheel.bind(this)
         this.handleClick = this.handleClick.bind(this)
         this.handleContextMenu = this.handleContextMenu.bind(this)
@@ -130,6 +132,10 @@ class EyesDisplay {
         this.observeResize()
         window.addEventListener("mousemove", this.handlePointerMove)
         window.addEventListener("mouseleave", this.handlePointerLeave)
+        window.addEventListener("touchstart", this.handleTouchMove, { passive: true })
+        window.addEventListener("touchmove", this.handleTouchMove, { passive: true })
+        window.addEventListener("touchend", this.handleTouchEnd, { passive: true })
+        window.addEventListener("touchcancel", this.handleTouchEnd, { passive: true })
         window.addEventListener("wheel", this.handleWheel, { passive: false })
         window.addEventListener("contextmenu", this.handleContextMenu)
         this.element.addEventListener("click", this.handleClick)
@@ -564,6 +570,23 @@ class EyesDisplay {
     }
 
     handlePointerLeave() {
+        this.pointer.active = false
+        this.idleStart = performance.now()
+    }
+
+    handleTouchMove(event) {
+        if (!this.follow || !event.touches || event.touches.length === 0) {
+            return
+        }
+        const touch = event.touches[0]
+        this.pointer.x = touch.clientX
+        this.pointer.y = touch.clientY
+        this.pointer.active = true
+        this.idleStart = performance.now()
+        this.pendingIdleBlink = false
+    }
+
+    handleTouchEnd() {
         this.pointer.active = false
         this.idleStart = performance.now()
     }

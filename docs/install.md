@@ -1,39 +1,46 @@
-# Install
+# Install & Setup
 
-AMOLED New Tab is an unpacked Chrome extension. It is not on the Chrome Web Store.
+AMOLED New Tab is an unpacked Manifest V3 Chromium extension and progressive mobile web page.
 
-## Requirements
+## Desktop Requirements & Installation
 
-- Chromium desktop: Google Chrome, Brave, Edge, Arc, or similar
-- Permission to load unpacked extensions (Developer mode)
-
-## Load unpacked
+- **Browsers**: Google Chrome, Brave, Microsoft Edge, Arc, Opera, Vivaldi
+- **Requirement**: Developer mode enabled in extension management
 
 1. Clone or download this repository.
-2. Go to `chrome://extensions`.
-3. Enable **Developer mode** (top right).
+2. Navigate to `chrome://extensions` (or `brave://extensions`, `edge://extensions`).
+3. Enable **Developer mode** toggle in the top-right corner.
 4. Click **Load unpacked**.
-5. Select the repository root — the directory that contains `manifest.json`. Do not select `docs/`, `icons/`, or a parent folder.
-6. Open a new tab.
+5. Select the repository root folder (the folder containing `manifest.json`).
+6. Open a new tab to see your AMOLED page!
 
-Chrome will warn that the extension is unpacked. That is expected.
+## Mobile Installation (Android & iOS)
 
-## After pulling changes
+AMOLED New Tab is fully responsive and touch-optimized for mobile phones and tablets:
 
-On `chrome://extensions`, click **Reload** on **AMOLED New Tab**. Then open a new tab. Cached eye frames in `localStorage` are versioned; a version bump rebuilds them automatically.
+### Method 1: Mobile Chromium Extension (Kiwi Browser / Lemur Browser / Orion)
+1. Transfer or download the repository folder to your mobile device (or download as a `.zip` and extract).
+2. In **Kiwi Browser** or **Lemur Browser** (Android), or **Orion Browser** (iOS / iPadOS):
+   - Tap menu (`⋮`) → **Extensions**.
+   - Toggle **Developer mode** on.
+   - Tap **+(from .zip/crx/userdir)** or **Load unpacked** and select the folder or zip.
+3. Open a new tab!
 
-## File preview (optional)
+### Method 2: Home Screen Web App / PWA
+You can also run AMOLED New Tab directly in any mobile browser (Safari, Chrome Mobile, Firefox Mobile) without an extension manager:
+1. Host the folder on any static host (GitHub Pages, Cloudflare Pages, Vercel) or run locally.
+2. Open `newtab.html` in your mobile browser.
+3. Tap **Share** (iOS) or **Menu** (Android) → **Add to Home Screen**.
+4. The web app launches in full-bleed AMOLED standalone mode with black translucent status bar support!
 
-You can open `newtab.html` in a normal tab while iterating on CSS. `chrome.storage` is missing in that mode, so shortcuts fall back to `localStorage`. Quote fetches still need network. Gaze tracking still works.
+## After Pulling Changes
 
-## Uninstall
+On `chrome://extensions`, click the **Reload** icon on **AMOLED New Tab**. Then open a new tab.
 
-`chrome://extensions` → **Remove** on AMOLED New Tab. Synced shortcut data stays in the Chrome profile until you clear extension storage.
+## Testing & Verification
 
-## Icons
-
-`scripts/make_icons.py` regenerates `icons/icon{16,48,128}.png` (stdlib only):
+Run the built-in test suite:
 
 ```bash
-python3 scripts/make_icons.py
+npm test
 ```

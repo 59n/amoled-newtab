@@ -108,32 +108,49 @@ body[data-accent="rose"] {
 }
 
 html, body {
-  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-color);
   color: var(--text-main);
-  overflow: hidden;
   font-family: "IBM Plex Mono", "Cascadia Code", "Courier New", ui-monospace, monospace;
   user-select: none;
   -webkit-user-select: none;
   transition: background-color 200ms ease;
 }
 
-html { --page-scale: 1; }
-main {
-  zoom: var(--page-scale);
-  transition: transform 260ms cubic-bezier(0.12, 0.8, 0.32, 1);
-  will-change: transform;
-}
-
-/* Prevent flashing of zoom buttons when hidden in settings */
-html.hide-zoom #zoom-buttons {
-  display: none !important;
+html {
+  --page-scale: 1;
 }
 
 body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+main {
+  zoom: var(--page-scale);
+  transition: transform 260ms cubic-bezier(0.12, 0.8, 0.32, 1);
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 920px;
+  margin: auto;
+  padding: max(1.5rem, env(safe-area-inset-top) + 0.8rem) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  position: relative;
+  z-index: 2;
+}
+
+/* Prevent flashing of zoom buttons when hidden in settings */
+html.hide-zoom #zoom-buttons {
+  display: none !important;
 }
 
 /* Ambient Cursor Aura */
@@ -197,35 +214,22 @@ body.has-cursor-aura .cursor-aura.active {
   }
 }
 
-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  width: min(920px, 100%);
-  max-width: 920px;
-  padding: 2rem 1.25rem 3rem;
-  position: relative;
-  z-index: 2;
-}
-
-/* ASCII Eyes */
+/* ASCII Eyes - Fully Responsive across mobile and desktop */
 .eyes {
   position: relative;
   box-sizing: content-box;
   width: 88ch;
   height: 22em;
-  min-width: 88ch;
-  max-width: 88ch;
-  min-height: 22em;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
   max-height: 22em;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--accent-bright);
-  font-size: 8px;
+  font-size: clamp(4px, min(calc((100vw - 32px) / 54), calc((100dvh - 170px) / 26)), 8px);
   line-height: 1;
   letter-spacing: 0;
   font-variant-ligatures: none;
@@ -300,7 +304,7 @@ body.has-glow #clock {
 
 #clock, .time {
   height: 1.15rem;
-  font-size: clamp(0.74rem, 1vw, 0.92rem);
+  font-size: clamp(0.74rem, 1.2vw, 0.92rem);
   font-weight: 400;
   line-height: 1.15rem;
   letter-spacing: 0.08em;
@@ -312,7 +316,7 @@ body.has-glow #clock {
 }
 
 #date, .date {
-  font-size: clamp(0.66rem, 0.85vw, 0.76rem);
+  font-size: clamp(0.66rem, 0.95vw, 0.76rem);
   font-weight: 400;
   line-height: 1.1;
   letter-spacing: 0.08em;
@@ -326,9 +330,9 @@ body.has-glow #clock {
 /* Quote */
 .quote {
   position: relative;
-  width: min(32rem, 76vw);
-  min-height: 4.4rem;
-  margin: 0;
+  width: min(32rem, 88vw);
+  min-height: 3.8rem;
+  margin: 0 auto;
   overflow: visible;
   color: rgba(214, 205, 188, 0.7);
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
@@ -344,7 +348,7 @@ body.has-glow #clock {
 .quote p {
   margin: 0;
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
-  font-size: clamp(0.84rem, 1.16vw, 1.02rem);
+  font-size: clamp(0.84rem, 1.25vw, 1.02rem);
   font-style: italic;
   line-height: 1.55;
   letter-spacing: 0.01em;
@@ -355,17 +359,19 @@ body.has-glow #clock {
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.5rem;
+  height: 1.5rem;
   margin-left: 0.35rem;
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(214, 205, 188, 0.28);
+  color: rgba(214, 205, 188, 0.35);
   opacity: 0;
   pointer-events: none;
   cursor: pointer;
   transform: translateY(-1px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: opacity 200ms ease, color 200ms ease, transform 150ms ease;
   position: relative;
 }
@@ -379,12 +385,21 @@ body.has-glow #clock {
 .copy-quote:focus-visible {
   opacity: 1;
   pointer-events: auto;
-  color: rgba(214, 205, 188, 0.45);
+  color: rgba(214, 205, 188, 0.55);
 }
 
-.quote.is-near .copy-quote:hover {
+.quote.is-near .copy-quote:hover,
+.copy-quote:active {
   color: var(--accent-bright);
   transform: translateY(-1px) scale(1.15);
+}
+
+/* Touchscreens: Keep copy button visible at subtle opacity so mobile users can tap it */
+@media (hover: none) or (pointer: coarse) {
+  .copy-quote {
+    opacity: 0.55;
+    pointer-events: auto;
+  }
 }
 
 .copy-tip {
@@ -422,7 +437,7 @@ body.has-glow #clock {
   display: block;
   margin-top: 0.38rem;
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
-  font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+  font-size: clamp(0.66rem, 0.95vw, 0.78rem);
   font-style: normal;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -444,30 +459,38 @@ body.has-glow #clock {
   flex-wrap: wrap;
   justify-content: center;
   align-content: start;
-  gap: 0.45rem;
-  margin-top: 0;
+  gap: 0.48rem;
+  margin-top: 0.15rem;
   min-height: 2.4rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   border: 1px solid var(--chip-border);
   background: var(--chip-bg);
   color: #8a8a8a;
   border-radius: 10px;
-  padding: 0.35rem 0.7rem 0.35rem 0.4rem;
-  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.45rem;
+  font-size: 0.8rem;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: border-color 150ms ease, color 150ms ease, transform 100ms ease;
 }
 
 .chip:hover {
   border-color: #383838;
   color: #ccc;
+}
+
+.chip:active {
+  transform: scale(0.96);
 }
 
 .chip img, .chip .letter {
@@ -490,13 +513,13 @@ body.has-glow #clock {
 }
 
 .chip.no-icon {
-  padding-left: 0.7rem;
+  padding-left: 0.75rem;
 }
 
 .chip.empty {
   border-style: dashed;
   min-width: 2.2rem;
-  min-height: 1.7rem;
+  min-height: 1.8rem;
   padding: 0.35rem 0.85rem;
   opacity: 0.45;
 }
@@ -522,35 +545,39 @@ body.has-glow #clock {
 #top-controls,
 #zoom-controls {
   position: fixed;
-  top: 14px;
-  right: 16px;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
   display: flex;
   align-items: center;
-  gap: 6px;
-  z-index: 10;
+  gap: 8px;
+  z-index: 15;
 }
 
 #zoom-buttons {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 #top-controls button,
 #zoom-controls button {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border: 1px solid var(--chip-border);
   background: var(--chip-bg);
-  color: #555;
+  color: #666;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 150ms ease, border-color 150ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms ease, border-color 150ms ease, transform 100ms ease;
 }
 
 #top-controls button:hover,
@@ -559,8 +586,13 @@ body.has-glow #clock {
   border-color: #444;
 }
 
+#top-controls button:active,
+#zoom-controls button:active {
+  transform: scale(0.92);
+}
+
 #gear {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .hidden { display: none !important; }
@@ -570,22 +602,25 @@ body.has-glow #clock {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
+  z-index: 50;
 }
 
-#overlay { z-index: 20; }
-#modal { z-index: 25; }
+#overlay { z-index: 50; }
+#modal { z-index: 60; }
 
 .modal-card {
   background: var(--modal-bg);
   border: 1px solid var(--modal-border);
-  border-radius: 10px;
-  padding: 1.1rem 1.2rem;
-  width: 320px;
+  border-radius: 12px;
+  padding: 1.2rem 1.3rem;
+  width: min(340px, 92vw);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85);
 }
 
 .modal-card h2 {
@@ -597,7 +632,7 @@ body.has-glow #clock {
 
 .modal-card label {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: #888;
   margin-bottom: 0.65rem;
 }
@@ -612,9 +647,9 @@ body.has-glow #clock {
   border: 1px solid var(--modal-border);
   color: #ccc;
   border-radius: 6px;
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.65rem;
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   outline: none;
   transition: border-color 150ms ease;
 }
@@ -632,17 +667,18 @@ select:focus {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.8rem;
 }
 
 .modal-actions button {
   background: #111;
   border: 1px solid #333;
   color: #ccc;
-  border-radius: 4px;
-  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  touch-action: manipulation;
 }
 
 .error { color: #c66; font-size: 0.75rem; margin-bottom: 0.5rem; }
@@ -651,13 +687,14 @@ select:focus {
 .overlay-card {
   background: var(--modal-bg);
   border: 1px solid var(--modal-border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 1.2rem 1.4rem;
-  width: min(520px, 94vw);
-  max-height: 84vh;
+  width: min(540px, 94vw);
+  max-height: 88vh;
+  max-height: 88dvh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.9);
 }
 
 .overlay-header {
@@ -668,7 +705,7 @@ select:focus {
 }
 
 .overlay-header h2 {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: #eee;
   letter-spacing: 0.02em;
@@ -678,35 +715,44 @@ select:focus {
   background: transparent;
   border: 0;
   color: #777;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   cursor: pointer;
   line-height: 1;
-  padding: 0.2rem;
-  border-radius: 4px;
+  padding: 0.3rem;
+  border-radius: 6px;
+  touch-action: manipulation;
   transition: color 150ms ease;
 }
-.btn-close:hover { color: #ddd; }
+.btn-close:hover,
+.btn-close:active { color: #fff; }
 
 /* Tabs bar */
 .settings-tabs {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.35rem;
   border-bottom: 1px solid #1a1a1a;
   padding-bottom: 0.5rem;
   margin-bottom: 0.5rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.settings-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
   background: transparent;
   border: 1px solid transparent;
   color: #777;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  padding: 0.35rem 0.65rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
+  touch-action: manipulation;
+  flex-shrink: 0;
   transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
@@ -725,6 +771,7 @@ select:focus {
 .settings-body {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 0.4rem 0.2rem 0.6rem;
   display: flex;
   flex-direction: column;
@@ -733,7 +780,7 @@ select:focus {
 .tab-panel {
   display: none;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.75rem;
 }
 
 .tab-panel.active {
@@ -746,7 +793,7 @@ select:focus {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #666;
-  margin: 0.4rem 0 0.1rem;
+  margin: 0.5rem 0 0.15rem;
 }
 
 .setting-row {
@@ -754,7 +801,7 @@ select:focus {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.5rem 0;
+  padding: 0.55rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -767,26 +814,27 @@ select:focus {
 .setting-info {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.2rem;
   flex: 1;
 }
 
 .setting-info label {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 500;
   color: #ddd;
 }
 
 .setting-desc {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: #777;
+  line-height: 1.3;
 }
 
 .setting-block {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  padding: 0.5rem 0.65rem;
+  padding: 0.55rem 0.7rem;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
@@ -804,10 +852,11 @@ select {
   border: 1px solid var(--modal-border);
   color: #ccc;
   border-radius: 6px;
-  padding: 0.35rem 0.6rem;
-  font-size: 0.78rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
   outline: none;
   cursor: pointer;
+  max-width: 52%;
 }
 
 select option {
@@ -819,8 +868,8 @@ select option {
 .switch {
   position: relative;
   display: inline-block;
-  width: 36px;
-  height: 20px;
+  width: 38px;
+  height: 22px;
   flex-shrink: 0;
 }
 
@@ -843,8 +892,8 @@ select option {
 .slider:before {
   position: absolute;
   content: "";
-  height: 12px;
-  width: 12px;
+  height: 14px;
+  width: 14px;
   left: 3px;
   bottom: 3px;
   background-color: #888;
@@ -865,36 +914,39 @@ input:checked + .slider:before {
 /* Color Swatches */
 .color-picker-group {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .color-swatch-btn {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 2px solid transparent;
   background: var(--swatch);
   cursor: pointer;
+  touch-action: manipulation;
   transition: transform 120ms ease, border-color 120ms ease;
   position: relative;
 }
 
-.color-swatch-btn:hover {
-  transform: scale(1.15);
+.color-swatch-btn:hover,
+.color-swatch-btn:active {
+  transform: scale(1.18);
 }
 
 .color-swatch-btn.active {
   border-color: #ffffff;
-  transform: scale(1.15);
+  transform: scale(1.18);
 }
 
 /* Scale Inline */
 .scale-row-inline {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.78rem;
+  gap: 0.5rem;
+  font-size: 0.8rem;
   color: #888;
 }
 
@@ -905,13 +957,14 @@ input:checked + .slider:before {
 }
 
 .scale-row-inline button {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #888;
   border-radius: 4px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .scale-row-inline button:hover {
@@ -924,7 +977,7 @@ input:checked + .slider:before {
   text-align: right;
   color: #aaa;
   font-variant-numeric: tabular-nums;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
 }
 
 /* Shortcuts list in settings */
@@ -932,7 +985,7 @@ input:checked + .slider:before {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
   margin-top: 0.3rem;
   margin-bottom: 0.6rem;
 }
@@ -945,25 +998,27 @@ input:checked + .slider:before {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid #1f1f1f;
   border-radius: 6px;
-  padding: 0.35rem 0.6rem;
-  font-size: 0.78rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8rem;
   color: #ccc;
 }
 
-#overlay-list .actions { display: flex; gap: 0.3rem; }
+#overlay-list .actions { display: flex; gap: 0.35rem; }
 
 #overlay-list button {
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #888;
   border-radius: 4px;
-  padding: 0.15rem 0.35rem;
+  padding: 0.2rem 0.45rem;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
+  touch-action: manipulation;
   transition: color 100ms ease, border-color 100ms ease;
 }
 
-#overlay-list button:hover {
+#overlay-list button:hover,
+#overlay-list button:active {
   color: #ddd;
   border-color: #444;
 }
@@ -973,14 +1028,16 @@ input:checked + .slider:before {
   border: 1px solid #333;
   color: #ccc;
   border-radius: 6px;
-  padding: 0.4rem 0.8rem;
+  padding: 0.45rem 0.9rem;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   align-self: flex-start;
+  touch-action: manipulation;
   transition: background 150ms ease, color 150ms ease;
 }
 
-#overlay-add:hover {
+#overlay-add:hover,
+#overlay-add:active {
   background: #191919;
   color: #fff;
 }
@@ -995,9 +1052,10 @@ input:checked + .slider:before {
   border: 1px solid #2e2e2e;
   color: #ccc;
   border-radius: 6px;
-  padding: 0.4rem 0.85rem;
-  font-size: 0.78rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
+  touch-action: manipulation;
   white-space: nowrap;
   transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
@@ -1014,9 +1072,10 @@ input:checked + .slider:before {
   border: 1px solid rgba(220, 60, 60, 0.4);
   color: #f87171;
   border-radius: 6px;
-  padding: 0.4rem 0.85rem;
-  font-size: 0.78rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
+  touch-action: manipulation;
   white-space: nowrap;
   transition: background 150ms ease, color 150ms ease;
 }
@@ -1030,15 +1089,16 @@ input:checked + .slider:before {
 #menu {
   position: fixed;
   z-index: 100;
-  background: rgba(14, 14, 18, 0.94);
+  background: rgba(14, 14, 18, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.88), 0 0 0 1px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 10px;
-  min-width: 170px;
+  border-radius: 12px;
+  min-width: 175px;
+  max-width: calc(100vw - 24px);
   padding: 0.35rem;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   transform-origin: top left;
   animation: menu-appear 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -1063,18 +1123,19 @@ input:checked + .slider:before {
   background: transparent;
   border: 0;
   color: #ccc;
-  padding: 0.42rem 0.65rem;
+  padding: 0.48rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-family: inherit;
+  touch-action: manipulation;
   transition: background 120ms ease, color 120ms ease, transform 100ms ease;
 }
 
 #menu button svg,
 #menu button .menu-icon {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   opacity: 0.75;
   flex-shrink: 0;
   display: inline-flex;
@@ -1082,14 +1143,17 @@ input:checked + .slider:before {
   justify-content: center;
 }
 
-#menu button:hover {
+#menu button:hover,
+#menu button:active {
   background: rgba(255, 255, 255, 0.08);
   color: var(--accent-bright);
   transform: translateX(2px);
 }
 
 #menu button:hover svg,
-#menu button:hover .menu-icon {
+#menu button:hover .menu-icon,
+#menu button:active svg,
+#menu button:active .menu-icon {
   opacity: 1;
   color: var(--accent-bright);
 }
@@ -1103,14 +1167,78 @@ input:checked + .slider:before {
 /* Toast */
 #toast {
   position: fixed;
-  bottom: 18px;
+  bottom: max(18px, env(safe-area-inset-bottom) + 10px);
   left: 50%;
   transform: translateX(-50%);
   background: #111;
   border: 1px solid #333;
   color: #aaa;
-  padding: 0.4rem 0.8rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 6px;
   font-size: 0.8rem;
-  z-index: 40;
+  z-index: 120;
+  max-width: 90vw;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Mobile & Small Screen Responsiveness */
+@media (max-width: 640px) {
+  #overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .overlay-card {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 88vh;
+    max-height: 88dvh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    padding: 1.1rem 1rem max(1.2rem, env(safe-area-inset-bottom));
+  }
+
+  .modal-card {
+    width: min(340px, 92vw);
+    margin: auto;
+  }
+
+  /* Prevent iOS automatic input zoom (requires >= 16px font-size) */
+  select,
+  input[type="text"],
+  textarea,
+  .modal-card input {
+    font-size: 16px !important;
+  }
+
+  select {
+    max-width: 60%;
+  }
+
+  .color-swatch-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .settings-tabs {
+    gap: 0.25rem;
+  }
+
+  .tab-btn {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .setting-row {
+    padding: 0.65rem 0;
+  }
+
+  #top-controls button,
+  #zoom-controls button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
 }
