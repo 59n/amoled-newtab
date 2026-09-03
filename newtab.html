@@ -4,27 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>New Tab</title>
-  <script>
-    // Synchronous pre-paint initialization to eliminate FOUC and button flashing
-    try {
-      const raw = localStorage.getItem("sync:settings");
-      if (raw) {
-        const s = JSON.parse(raw);
-        if (s.theme) document.documentElement.dataset.theme = s.theme;
-        if (s.accentColor) document.documentElement.dataset.accent = s.accentColor;
-        if (s.glowEffect) document.documentElement.classList.add("has-glow");
-        if (s.scale) document.documentElement.style.setProperty("--page-scale", s.scale);
-        if (s.showZoomControls === false) {
-          document.documentElement.classList.add("hide-zoom");
-        }
-      }
-    } catch {}
-  </script>
+  <script src="preinit.js"></script>
   <link rel="stylesheet" href="newtab.css">
 </head>
 <body>
   <div id="top-controls">
-    <div id="zoom-buttons">
+    <div id="zoom-buttons" class="hidden">
       <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
       <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
     </div>
