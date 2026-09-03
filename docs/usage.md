@@ -2,33 +2,50 @@
 
 ## Eyes
 
-The framed pair is a fixed ASCII field. It does not change layout when the gaze moves.
+The framed pair is a fixed ASCII field rendered on an OLED-optimized background.
 
 | Input | Reaction |
 | --- | --- |
-| Move the mouse | Pupils follow |
-| Idle | Slow drift + periodic blink |
-| Scroll wheel | Look up or down, then blink |
-| Click the eyes | Double blink |
-| Right-click (empty page) | Glance away and squeeze shut |
+| Move the mouse | Pupils follow cursor (when enabled in settings) |
+| Idle | Slow wandering drift + periodic natural blink |
+| Scroll wheel | Kinetic scroll reaction; look up or down, then blink |
+| Left-click | Double blink + geometric click ripple |
+| Right-click (empty page) | Glance away, shut eyes, emit sonar shockwave, and open quick-action menu |
 
-Native text selection is off. Native context menu is off except in settings text fields. Shortcut chips still open the custom edit menu on right-click.
+7 customizable eye styles are supported (**Classic**, **Sleepy**, **Wide**, **Squint**, **Glare**, **Close-set**, **Wide-set**, or **Random per tab**) across 5 ASCII density ramps (**Classic**, **Minimal**, **Blocks**, **Binary**, and **Matrix**).
 
-## Clock
+## Ambient Cursor Aura & Click Ripples
 
-Local timezone, `H:MM:SS AM/PM`, updates every second.
+- **Cursor Aura**: Soft radial phosphor flashlight tracking pointer coordinates, tinted with your active accent color.
+- **Click Ripples**: Smooth geometric shockwave expanding on left-click and dissolving into pure AMOLED black.
+- **Sonar Shockwave**: Right-clicking emits an accented dual-ring shockwave.
+
+## Context Menus (Right-Click)
+
+- **Right-click on Empty Space**: Opens a glassmorphic quick-action menu:
+  - ⚙️ **Settings**: Open tabbed settings panel
+  - 👁️ **Cycle Eyes**: Cycle to the next eye style
+  - ✦ **Toggle Glow**: Toggle CRT/phosphor glow on or off
+  - ❝ **New Quote**: Fetch a fresh quote
+  - ➕ **Add Shortcut**: Create a new shortcut
+- **Right-click on Shortcut Chip**: Opens context menu to **Edit Shortcut**, **Clear Slot**, or **Delete Slot**.
+
+## Clock & Date
+
+- Time in 12-hour or 24-hour formats, with an optional seconds toggle.
+- Optional date display with multiple formats (**Medium**, **Full**, or **ISO Numeric**).
 
 ## Quotes
 
-A random quote loads on each new tab (Quotable, then DummyJSON, then cache, then bundled fallback).
+A random quote loads on each new tab (Quotable, then DummyJSON, then cache, then bundled fallbacks), or switch to **Custom Motto** in settings to display your own quote.
 
-Move the cursor near the quote. A small clipboard icon fades in **behind the quote line** (not on the author). Click it to copy:
+Move the cursor near the quote. A small clipboard icon fades in **directly behind the quote**:
 
 ```
 <quote text> — <author>
 ```
 
-A **Copied** tooltip plays and fades.
+Clicking copies the quote and author to the clipboard with an animated **Copied** tooltip.
 
 ## Shortcuts
 
@@ -42,20 +59,24 @@ Defaults on first run:
 
 | Action | How |
 | --- | --- |
-| Open | Left-click a filled chip (same tab) |
-| Open in a new tab | Middle-click or ctrl/cmd-click |
+| Open | Left-click (current tab or new tab based on settings) |
+| Open in a new tab | Middle-click or `Ctrl`/`Cmd`+Click |
 | Add | `+ add`, or click an empty slot |
 | Edit / clear / delete | Right-click a chip |
-| Reorder | Drag chips |
-| Full list | ⚙ (top right) |
+| Reorder | Drag and drop chips |
+| Full management | Settings > Shortcuts tab |
 
-URLs without a scheme get `https://`. Invalid URLs stay in the editor. Maximum 8 chips.
+URLs without a scheme get `https://`. Maximum 8 chips. Icon styles: Favicon, Letter badge, or None.
 
-## Size
+## Zoom & Scaling
 
-`−` / `+` next to ⚙, or **Size** in the settings overlay. Range 70%–200% in 10% steps. Stored with the Chrome profile.
+- Global scaling from 70% to 200% in 10% steps.
+- Corner `−` / `+` buttons (can be toggled off in settings without losing the `⚙` gear button).
+- Settings slider with instant preview.
 
-## Keyboard
+## Settings & Hotkeys
 
-- `Escape` closes the editor, settings overlay, and chip menu
-- Click outside those surfaces also closes them
+- `⚙` in the top right corner opens the tabbed settings modal.
+- Hotkey <kbd>s</kbd> or <kbd>,</kbd> (or <kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>,</kbd>) toggles the settings panel.
+- Right-click anywhere on empty space to access settings via context menu.
+- `Escape` closes any open modal, menu, or settings overlay.
