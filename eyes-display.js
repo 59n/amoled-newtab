@@ -67,12 +67,12 @@ class EyesDisplay {
 
         this.sourceWidth = 288
         this.sourceHeight = 112
-        this.columns = 64
-        this.rows = 28
-        this.artRows = 28
+        this.columns = 88
+        this.rows = 22
+        this.artRows = 22
         this.frameColumns = 9
         this.frameRows = 7
-        this.cacheVersion = "eyes-v22"
+        this.cacheVersion = "eyes-v23"
         this.frameCache = new Map()
         this.blinkFrame = { bright: "", dim: "" }
         this.canvas = document.createElement("canvas")
@@ -205,15 +205,14 @@ class EyesDisplay {
 
     setupLayers() {
         this.element.replaceChildren()
-        this.backgroundLayer = document.createElement("pre")
-        this.backgroundLayer.className = "eyes__bg"
-        this.element.appendChild(this.backgroundLayer)
         this.layers = [0, 1].map((index) => {
             const layer = document.createElement("div")
             layer.className = `eyes__layer${index === 0 ? " eyes__layer--active" : ""}`
-            const dimTone = this.createRegionPair("eyes__tone eyes__tone--dim")
-            const brightTone = this.createRegionPair("eyes__tone eyes__tone--bright")
-            layer.append(dimTone.left, dimTone.right, brightTone.left, brightTone.right)
+            const dimTone = document.createElement("pre")
+            dimTone.className = "eyes__tone eyes__tone--dim"
+            const brightTone = document.createElement("pre")
+            brightTone.className = "eyes__tone eyes__tone--bright"
+            layer.append(dimTone, brightTone)
             this.element.appendChild(layer)
             return {
                 shell: layer,
@@ -221,19 +220,6 @@ class EyesDisplay {
                 bright: brightTone,
             }
         })
-    }
-
-    createRegionPair(baseClassName) {
-        const createRegion = (side) => {
-            const region = document.createElement("pre")
-            region.className = `${baseClassName} eyes__region eyes__region--${side}`
-            return region
-        }
-
-        return {
-            left: createRegion("left"),
-            right: createRegion("right"),
-        }
     }
 
     observeResize() {
@@ -756,15 +742,10 @@ class EyesDisplay {
             return
         }
 
-        this.setRegionText(layer.dim, frame.dim)
-        this.setRegionText(layer.bright, frame.bright)
+        layer.dim.textContent = frame.dim
+        layer.bright.textContent = frame.bright
         layer.shell.classList.add("eyes__layer--active")
         this.lastRenderedFrame = frameKey
-    }
-
-    setRegionText(regionPair, text) {
-        regionPair.left.textContent = text
-        regionPair.right.textContent = text
     }
 
     clamp(value, min, max) {

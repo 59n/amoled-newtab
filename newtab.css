@@ -229,20 +229,20 @@ body.has-cursor-aura .cursor-aura.active {
   border: 0;
   background: transparent;
   color: var(--accent-bright);
-  font-size: clamp(4px, min(calc((100vw - 32px) / 54), calc((100dvh - 170px) / 26)), 8px);
+  font-family: "IBM Plex Mono", "Cascadia Code", "Courier New", ui-monospace, monospace;
+  font-size: clamp(4px, min(calc((100vw - 32px) / 58), calc((100dvh - 170px) / 26)), 8px);
   line-height: 1;
   letter-spacing: 0;
   font-variant-ligatures: none;
   font-kerning: none;
-  overflow: hidden;
+  overflow: visible;
   cursor: default;
   flex-shrink: 0;
 }
 
 .eyes__bg,
 .eyes__layer,
-.eyes__tone,
-.eyes__region {
+.eyes__tone {
   position: absolute;
   inset: 0;
 }
@@ -263,21 +263,13 @@ body.has-cursor-aura .cursor-aura.active {
   padding: 0;
   pointer-events: none;
   white-space: pre;
-  overflow: hidden;
+  overflow: visible;
+  font-family: "IBM Plex Mono", "Cascadia Code", "Courier New", ui-monospace, monospace;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: 0;
   font-variant-ligatures: none;
   font-kerning: none;
-}
-
-.eyes__region { will-change: transform; }
-
-.eyes__region--left {
-  clip-path: inset(6% 50% 6% 0);
-  transform-origin: 25% 50%;
-}
-
-.eyes__region--right {
-  clip-path: inset(6% 0 6% 50%);
-  transform-origin: 75% 50%;
 }
 
 .eyes__tone--dim { color: var(--text-dim); }
