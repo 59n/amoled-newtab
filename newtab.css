@@ -1695,3 +1695,56 @@ body.is-sleeping .eyes {
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+
+.bookmark-folder-badge {
+  font-size: 0.68rem;
+  background: #141414;
+  border: 1px solid #242424;
+  color: var(--accent-bright);
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.bookmarks-permission-banner {
+  padding: 24px 16px;
+  text-align: center;
+  background: #080808;
+  border: 1px solid #222222;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.banner-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-bright);
+  margin-bottom: 8px;
+}
+
+.banner-desc {
+  font-size: 0.8rem;
+  color: #a0a0a0;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.banner-steps {
+  font-size: 0.78rem;
+  color: #888;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: #000;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #1a1a1a;
+  margin-bottom: 12px;
+}
+
+.code-badge {
+  color: var(--accent-bright);
+  font-family: monospace;
+}

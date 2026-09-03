@@ -1238,54 +1238,63 @@ let activeBookmarkFolder = "All";
 async function loadBookmarks() {
   allBookmarks = [];
   bookmarkFolders = ["All"];
+  let hasChromeApi = typeof chrome !== "undefined" && Boolean(chrome?.bookmarks?.getTree);
 
-  // 1. Try Chrome Bookmarks API
-  if (typeof chrome !== "undefined" && chrome.bookmarks && chrome.bookmarks.getTree) {
+  if (hasChromeApi) {
     try {
-      const tree = await new Promise((resolve) => chrome.bookmarks.getTree(resolve));
+      const tree = await new Promise((resolve, reject) => {
+        try {
+          chrome.bookmarks.getTree((nodes) => {
+            if (chrome.runtime?.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve(nodes);
+            }
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+
       if (tree && tree.length > 0) {
-        parseBookmarkNodes(tree[0], "");
+        const root = tree[0];
+        if (root.children && root.children.length > 0) {
+          root.children.forEach((childFolder) => {
+            parseBookmarkNodes(childFolder, childFolder.title || "Bookmarks Bar");
+          });
+        } else {
+          parseBookmarkNodes(root, "");
+        }
       }
     } catch (err) {
       console.warn("Chrome Bookmarks API error:", err);
+      hasChromeApi = false;
     }
   }
 
-  // 2. Fallback / preview bookmarks if Chrome API unavailable or empty
-  if (allBookmarks.length === 0) {
-    allBookmarks = [
-      { id: "b1", title: "GitHub", url: "https://github.com", folder: "Bookmarks Bar" },
-      { id: "b2", title: "Hacker News", url: "https://news.ycombinator.com", folder: "Bookmarks Bar" },
-      { id: "b3", title: "YouTube", url: "https://youtube.com", folder: "Bookmarks Bar" },
-      { id: "b4", title: "Reddit", url: "https://reddit.com", folder: "Bookmarks Bar" },
-      { id: "b5", title: "Wikipedia", url: "https://wikipedia.org", folder: "Reading List" },
-      { id: "b6", title: "MDN Web Docs", url: "https://developer.mozilla.org", folder: "Dev" },
-      { id: "b7", title: "ArXiv", url: "https://arxiv.org", folder: "Reading List" },
-      { id: "b8", title: "X / Twitter", url: "https://x.com", folder: "Bookmarks Bar" },
-    ];
-    bookmarkFolders = ["All", "Bookmarks Bar", "Dev", "Reading List"];
-  }
-
   renderBookmarkFolderTabs();
-  renderBookmarksList();
+  renderBookmarksList(hasChromeApi);
 }
 
-function parseBookmarkNodes(node, currentFolder) {
-  const folderName = node.title || currentFolder || "Bookmarks Bar";
+function parseBookmarkNodes(node, folderName) {
+  if (!node) return;
+
   if (node.url) {
     allBookmarks.push({
       id: node.id || String(Math.random()),
       title: node.title || node.url,
       url: node.url,
-      folder: currentFolder || "Bookmarks Bar",
+      folder: folderName || "Bookmarks Bar",
     });
   }
+
   if (node.children && node.children.length > 0) {
-    if (node.title && !bookmarkFolders.includes(node.title) && node.title !== "root") {
-      bookmarkFolders.push(node.title);
+    const currentFolder = node.title || folderName;
+    if (currentFolder && !bookmarkFolders.includes(currentFolder)) {
+      bookmarkFolders.push(currentFolder);
     }
     node.children.forEach((child) => {
-      parseBookmarkNodes(child, node.title || currentFolder);
+      parseBookmarkNodes(child, currentFolder);
     });
   }
 }
@@ -1308,9 +1317,37 @@ function renderBookmarkFolderTabs() {
   });
 }
 
-function renderBookmarksList() {
+function renderBookmarksList(hasChromeApi = true) {
   if (!bookmarksList) return;
   bookmarksList.innerHTML = "";
+
+  if (!hasChromeApi && allBookmarks.length === 0) {
+    const banner = document.createElement("div");
+    banner.className = "bookmarks-permission-banner";
+    banner.innerHTML = `
+      <div class="banner-title">⚠️ Extension Reload Required</div>
+      <p class="banner-desc">
+        Chrome requires a one-time reload after updating extension permissions so it can access your Bookmarks Bar.
+      </p>
+      <div class="banner-steps">
+        <div>1. Open <span class="code-badge">chrome://extensions</span> in a new tab</div>
+        <div>2. Click the <strong>🔄 Reload</strong> icon on <strong>AMOLED New Tab</strong></div>
+        <div>3. Refresh this page</div>
+      </div>
+      <button type="button" id="btn-copy-ext-url" class="btn-drawer-action" style="margin-top: 4px;">
+        Copy "chrome://extensions"
+      </button>
+    `;
+    const copyBtn = banner.querySelector("#btn-copy-ext-url");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText("chrome://extensions");
+        showToast("Copied chrome://extensions to clipboard");
+      });
+    }
+    bookmarksList.appendChild(banner);
+    return;
+  }
 
   const query = (bookmarksSearchInput?.value || "").trim().toLowerCase();
 
@@ -1372,6 +1409,13 @@ function renderBookmarksList() {
     const domain = document.createElement("span");
     domain.className = "bookmark-domain";
     domain.textContent = hostname;
+
+    if (activeBookmarkFolder === "All" && bm.folder) {
+      const folderBadge = document.createElement("span");
+      folderBadge.className = "bookmark-folder-badge";
+      folderBadge.textContent = "📁 " + bm.folder;
+      domain.append(folderBadge);
+    }
 
     info.append(title, domain);
     left.append(img, info);
