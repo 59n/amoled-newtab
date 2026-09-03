@@ -631,6 +631,10 @@ class EyesDisplay {
         if (!this.follow || !event.touches || event.touches.length === 0) {
             return
         }
+        const target = event.target
+        if (target && target.closest && target.closest("#bookmarks-drawer, .bookmarks-list, #overlay, #modal")) {
+            return
+        }
         const touch = event.touches[0]
         this.pointer.x = touch.clientX
         this.pointer.y = touch.clientY
@@ -645,6 +649,10 @@ class EyesDisplay {
     }
 
     handleWheel(event) {
+        const target = event.target
+        if (target && target.closest && target.closest("#bookmarks-drawer, .bookmarks-list, #overlay, .overlay-body, #modal, #menu")) {
+            return
+        }
         event.preventDefault()
         const now = performance.now()
         this.scrollY = event.deltaY > 0 ? this.frameRows - 1 : 0

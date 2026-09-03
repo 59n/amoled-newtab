@@ -758,7 +758,14 @@ function setupScrollPhysics() {
   let resetTimer = null;
 
   window.addEventListener("wheel", (e) => {
-    if (!overlay.classList.contains("hidden") || !modal.classList.contains("hidden")) return;
+    if (
+      !overlay.classList.contains("hidden") ||
+      !modal.classList.contains("hidden") ||
+      (bookmarksDrawer && !bookmarksDrawer.classList.contains("hidden")) ||
+      e.target?.closest?.("#bookmarks-drawer, #overlay, #modal")
+    ) {
+      return;
+    }
     scrollOffset = Math.max(-24, Math.min(24, scrollOffset - e.deltaY * 0.1));
     mainEl.style.transform = `translateY(${scrollOffset}px)`;
 
@@ -1524,6 +1531,7 @@ function openBookmarksDrawer() {
   loadBookmarks();
   bookmarksDrawer.classList.remove("hidden");
   if (bookmarksBackdrop) bookmarksBackdrop.classList.remove("hidden");
+  document.body.classList.add("drawer-open");
   if (bookmarksSearchInput) {
     bookmarksSearchInput.value = "";
     setTimeout(() => bookmarksSearchInput.focus(), 150);
@@ -1534,6 +1542,7 @@ function closeBookmarksDrawer() {
   if (!bookmarksDrawer) return;
   bookmarksDrawer.classList.add("hidden");
   if (bookmarksBackdrop) bookmarksBackdrop.classList.add("hidden");
+  document.body.classList.remove("drawer-open");
 }
 
 function toggleBookmarksDrawer() {
@@ -1545,6 +1554,11 @@ function toggleBookmarksDrawer() {
 }
 
 function setupBookmarksBridge() {
+  if (bookmarksDrawer) {
+    bookmarksDrawer.addEventListener("wheel", (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+  }
   if (btnBookmarks) {
     btnBookmarks.addEventListener("click", toggleBookmarksDrawer);
   }
