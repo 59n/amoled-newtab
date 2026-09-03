@@ -258,7 +258,7 @@ function setupQuoteCopy() {
   });
 }
 
-async function loadQuote() {
+async function loadQuote(force = false) {
   if (settings.quoteMode === "custom") {
     renderQuote({
       text: settings.customQuoteText || "Simplicity is the ultimate sophistication.",
@@ -269,8 +269,11 @@ async function loadQuote() {
 
   const fb = await loadFallbacks();
   const cached = await loadQuoteCache();
-  if (cached) renderQuote(cached);
-  else renderQuote(fb.quotes[0]);
+  if (cached && !force) {
+    renderQuote(cached);
+  } else if (!force) {
+    renderQuote(fb.quotes[0]);
+  }
 
   try {
     let q = null;
@@ -290,7 +293,11 @@ async function loadQuote() {
     }
     q.text = truncateQuote(q.text);
     await saveQuoteCache(q);
-    renderQuote(q);
+
+    // Only render live if there was NO cached quote initially, or user explicitly requested a new quote
+    if (!cached || force) {
+      renderQuote(q);
+    }
   } catch {
     if (!cached) renderQuote(fb.quotes[Math.floor(Math.random() * fb.quotes.length)]);
   }
@@ -637,7 +644,7 @@ function openBackgroundMenu(x, y) {
     showToast(`Glow ${nextGlow ? "enabled" : "disabled"}`);
   });
   addMenuItem("New Quote", "❝", () => {
-    loadQuote();
+    loadQuote(true);
     showToast("Loaded new quote");
   });
   if (shortcuts.length < MAX_CHIPS) {
@@ -808,6 +815,7 @@ function setupScrollPhysics() {
     ) {
       return;
     }
+    mainEl.style.transition = "transform 140ms cubic-bezier(0.12, 0.8, 0.32, 1)";
     scrollOffset = Math.max(-24, Math.min(24, scrollOffset - e.deltaY * 0.1));
     mainEl.style.transform = `translateY(${scrollOffset}px)`;
 
@@ -815,7 +823,8 @@ function setupScrollPhysics() {
     resetTimer = setTimeout(() => {
       scrollOffset = 0;
       mainEl.style.transform = "";
-    }, 120);
+      mainEl.style.transition = "";
+    }, 140);
   }, { passive: true });
 }
 
@@ -1847,14 +1856,14 @@ function setupCuriosityFocus() {
 // Immediate synchronous warm render from cache to eliminate CLS / pop-in
 try {
   tick();
-  const syncQuote = localStorage.getItem("quoteCache");
-  if (syncQuote) {
-    const q = JSON.parse(syncQuote);
+  const rawQuote = localStorage.getItem("local:quoteCache") || localStorage.getItem("quoteCache");
+  if (rawQuote) {
+    const q = JSON.parse(rawQuote);
     if (q && q.text) renderQuote(q);
   }
-  const syncShortcuts = localStorage.getItem("shortcuts");
-  if (syncShortcuts) {
-    const sc = JSON.parse(syncShortcuts);
+  const rawShortcuts = localStorage.getItem("sync:shortcuts") || localStorage.getItem("shortcuts");
+  if (rawShortcuts) {
+    const sc = JSON.parse(rawShortcuts);
     if (Array.isArray(sc) && sc.length) {
       shortcuts = sc;
       renderChips();
@@ -1894,11 +1903,6 @@ async function init() {
   setupSearchBar();
   setupCuriosityFocus();
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      mainEl?.classList.add("ready");
-    });
-  });
 }
 
 init();
