@@ -35,7 +35,7 @@ const overlayClose = document.getElementById("overlay-close");
 const overlayList = document.getElementById("overlay-list");
 const overlayAdd = document.getElementById("overlay-add");
 const gear = document.getElementById("gear");
-const zoomControls = document.getElementById("zoom-controls");
+const zoomButtons = document.getElementById("zoom-buttons");
 const zoomOut = document.getElementById("zoom-out");
 const zoomIn = document.getElementById("zoom-in");
 const scaleDown = document.getElementById("scale-down");
@@ -489,14 +489,6 @@ overlay.addEventListener("click", (e) => {
 });
 overlayAdd.addEventListener("click", () => openEditor(null));
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    closeOverlay();
-    closeModal();
-    closeMenu();
-  }
-});
-
 // Shortcuts management in overlay
 function renderOverlayList() {
   overlayList.replaceChildren();
@@ -566,7 +558,14 @@ function applySettings(cfg, isInitial = false) {
   document.body.dataset.theme = cfg.theme;
   document.body.dataset.accent = cfg.accentColor;
   document.body.classList.toggle("has-glow", Boolean(cfg.glowEffect));
-  zoomControls.classList.toggle("hidden", !cfg.showZoomControls);
+
+  // Only hide the zoom buttons (− / +), NEVER the settings gear!
+  if (zoomButtons) {
+    zoomButtons.classList.toggle("hidden", !cfg.showZoomControls);
+  } else if (zoomOut && zoomIn) {
+    zoomOut.classList.toggle("hidden", !cfg.showZoomControls);
+    zoomIn.classList.toggle("hidden", !cfg.showZoomControls);
+  }
 
   // Scale
   applyScale(cfg.scale, false);
@@ -816,6 +815,37 @@ scaleRange.addEventListener("input", () => {
 });
 scaleRange.addEventListener("change", () => {
   applyScale(Number(scaleRange.value) / 100, true);
+});
+
+// -------------------------------------------------------------
+// Keyboard & Background Shortcuts to Open Settings
+// -------------------------------------------------------------
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeOverlay();
+    closeModal();
+    closeMenu();
+    return;
+  }
+  const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+  if (!isInput) {
+    // Pressing 's', ',', or Cmd/Ctrl+, toggles settings
+    if (e.key.toLowerCase() === "s" || e.key === "," || ((e.metaKey || e.ctrlKey) && e.key === ",")) {
+      e.preventDefault();
+      if (overlay.classList.contains("hidden")) {
+        openOverlay();
+      } else {
+        closeOverlay();
+      }
+    }
+  }
+});
+
+// Double clicking empty background toggles settings
+document.addEventListener("dblclick", (e) => {
+  if (e.target === document.body || e.target.tagName === "MAIN") {
+    openOverlay();
+  }
 });
 
 // -------------------------------------------------------------

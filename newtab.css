@@ -329,6 +329,7 @@ body.has-glow #clock {
 /* Shortcuts & UI */
 #chips,
 .chip,
+#top-controls,
 #zoom-controls,
 .overlay-card,
 .modal-card {
@@ -414,16 +415,25 @@ body.has-glow #clock {
 .chip.add, .chip.empty { cursor: pointer; }
 .chip.dragging { opacity: 0.4; }
 
-/* Corner Zoom Controls */
+/* Top Corner Controls */
+#top-controls,
 #zoom-controls {
   position: fixed;
   top: 14px;
   right: 16px;
   display: flex;
+  align-items: center;
   gap: 6px;
   z-index: 10;
 }
 
+#zoom-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#top-controls button,
 #zoom-controls button {
   width: 28px;
   height: 28px;
@@ -440,9 +450,14 @@ body.has-glow #clock {
   transition: color 150ms ease, border-color 150ms ease;
 }
 
+#top-controls button:hover,
 #zoom-controls button:hover {
   color: #aaa;
   border-color: #444;
+}
+
+#gear {
+  font-size: 15px;
 }
 
 .hidden { display: none !important; }

@@ -7,9 +7,11 @@
   <link rel="stylesheet" href="newtab.css">
 </head>
 <body>
-  <div id="zoom-controls">
-    <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
-    <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+  <div id="top-controls">
+    <div id="zoom-buttons">
+      <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+      <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+    </div>
     <button id="gear" type="button" aria-label="Settings">⚙</button>
   </div>
 
@@ -123,7 +125,7 @@
           <div class="setting-row">
             <div class="setting-info">
               <label for="setting-show-zoom">Corner Zoom Buttons</label>
-              <span class="setting-desc">Show − / + buttons beside the settings gear</span>
+              <span class="setting-desc">Show − / + zoom buttons (gear icon always stays)</span>
             </div>
             <label class="switch">
               <input type="checkbox" id="setting-show-zoom">
