@@ -1,3 +1,13 @@
 .superpowers/
 .worktrees/
 .DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+secrets/
+node_modules/
+.idea/
+.vscode/
+*.log
