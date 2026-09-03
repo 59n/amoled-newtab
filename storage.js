@@ -11,7 +11,8 @@ export const DEFAULT_SHORTCUTS = [
 export const DEFAULT_SETTINGS = {
   // Appearance / Themes
   theme: "amoled", // "amoled", "charcoal", "navy", "matrix"
-  accentColor: "white", // "white", "amber", "green", "cyan", "purple", "rose"
+  accentColor: "white",
+  customAccentColor: "#00ffcc",
   glowEffect: false,
   cursorAura: true,
   clickRipples: true,

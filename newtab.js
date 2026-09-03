@@ -48,6 +48,9 @@ const mainEl = document.querySelector("main");
 // Settings controls
 const settingTheme = document.getElementById("setting-theme");
 const accentSwatches = document.querySelectorAll("#accent-swatches .color-swatch-btn");
+const customSwatchLabel = document.getElementById("custom-swatch-label");
+const customAccentPicker = document.getElementById("custom-accent-picker");
+const customHexInput = document.getElementById("custom-hex-input");
 const settingGlow = document.getElementById("setting-glow");
 const settingCursorAura = document.getElementById("setting-cursor-aura");
 const settingClickRipples = document.getElementById("setting-click-ripples");
@@ -941,8 +944,44 @@ function applySettings(cfg, isInitial = false) {
   // Appearance: sync both documentElement and body
   document.documentElement.dataset.theme = cfg.theme;
   document.body.dataset.theme = cfg.theme;
-  document.documentElement.dataset.accent = cfg.accentColor;
-  document.body.dataset.accent = cfg.accentColor;
+
+  const isCustomHex = cfg.accentColor && cfg.accentColor.startsWith("#");
+  if (isCustomHex) {
+    document.documentElement.dataset.accent = "custom";
+    document.body.dataset.accent = "custom";
+    document.documentElement.style.setProperty("--accent-color", cfg.accentColor);
+    document.body.style.setProperty("--accent-color", cfg.accentColor);
+    let c = cfg.accentColor.replace(/^#/, "");
+    if (c.length === 3) c = c.split("").map((x) => x + x).join("");
+    const num = parseInt(c, 16);
+    if (!isNaN(num)) {
+      const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+      const brR = Math.min(255, Math.round(r + (255 - r) * 0.35));
+      const brG = Math.min(255, Math.round(g + (255 - g) * 0.35));
+      const brB = Math.min(255, Math.round(b + (255 - b) * 0.35));
+      const brightRgb = `rgb(${brR}, ${brG}, ${brB})`;
+      const auraRgba = `rgba(${r}, ${g}, ${b}, 0.085)`;
+      const dimRgba = `rgba(${r}, ${g}, ${b}, 0.35)`;
+
+      document.documentElement.style.setProperty("--accent-bright", brightRgb);
+      document.documentElement.style.setProperty("--accent-aura", auraRgba);
+      document.documentElement.style.setProperty("--text-dim", dimRgba);
+      document.body.style.setProperty("--accent-bright", brightRgb);
+      document.body.style.setProperty("--accent-aura", auraRgba);
+      document.body.style.setProperty("--text-dim", dimRgba);
+    }
+  } else {
+    document.documentElement.dataset.accent = cfg.accentColor;
+    document.body.dataset.accent = cfg.accentColor;
+    document.documentElement.style.removeProperty("--accent-color");
+    document.documentElement.style.removeProperty("--accent-bright");
+    document.documentElement.style.removeProperty("--accent-aura");
+    document.documentElement.style.removeProperty("--text-dim");
+    document.body.style.removeProperty("--accent-color");
+    document.body.style.removeProperty("--accent-bright");
+    document.body.style.removeProperty("--accent-aura");
+    document.body.style.removeProperty("--text-dim");
+  }
   document.documentElement.classList.toggle("has-glow", Boolean(cfg.glowEffect));
   document.body.classList.toggle("has-glow", Boolean(cfg.glowEffect));
   document.body.classList.toggle("has-cursor-aura", Boolean(cfg.cursorAura));
@@ -1007,6 +1046,18 @@ function syncSettingsForm() {
   accentSwatches.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.color === settings.accentColor);
   });
+  if (customSwatchLabel && customAccentPicker && customHexInput) {
+    const isCustom = settings.accentColor && settings.accentColor.startsWith("#");
+    customSwatchLabel.classList.toggle("active", Boolean(isCustom));
+    const hexVal = isCustom ? settings.accentColor : (settings.customAccentColor || "#00ffcc");
+    customAccentPicker.value = hexVal.startsWith("#") ? hexVal : `#${hexVal}`;
+    customHexInput.value = hexVal.replace(/^#/, "").toUpperCase();
+    if (isCustom) {
+      customSwatchLabel.style.boxShadow = `0 0 8px ${hexVal}`;
+    } else {
+      customSwatchLabel.style.boxShadow = "";
+    }
+  }
   settingGlow.checked = Boolean(settings.glowEffect);
   if (settingCursorAura) settingCursorAura.checked = Boolean(settings.cursorAura);
   if (settingClickRipples) settingClickRipples.checked = Boolean(settings.clickRipples);
@@ -1053,14 +1104,52 @@ function setupSettingsListeners() {
     updateAndSaveSettings({ theme: settingTheme.value });
   });
 
-  // Accent Color
+  // Accent Color Presets
   accentSwatches.forEach((btn) => {
     btn.addEventListener("click", () => {
       accentSwatches.forEach((b) => b.classList.remove("active"));
+      customSwatchLabel?.classList.remove("active");
+      if (customSwatchLabel) customSwatchLabel.style.boxShadow = "";
       btn.classList.add("active");
       updateAndSaveSettings({ accentColor: btn.dataset.color });
     });
   });
+
+  // Custom Color Picker & Hex Input
+  if (customAccentPicker && customHexInput && customSwatchLabel) {
+    function applyCustomColor(rawHex) {
+      let clean = rawHex.trim().replace(/^#/, "");
+      if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(clean)) return;
+      if (clean.length === 3) clean = clean.split("").map((x) => x + x).join("");
+      const fullHex = `#${clean.toLowerCase()}`;
+
+      accentSwatches.forEach((b) => b.classList.remove("active"));
+      customSwatchLabel.classList.add("active");
+      customSwatchLabel.style.boxShadow = `0 0 8px ${fullHex}`;
+      customAccentPicker.value = fullHex;
+      customHexInput.value = clean.toUpperCase();
+
+      updateAndSaveSettings({
+        accentColor: fullHex,
+        customAccentColor: fullHex,
+      });
+    }
+
+    customAccentPicker.addEventListener("input", (e) => {
+      applyCustomColor(e.target.value);
+    });
+
+    customHexInput.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      if (/^[0-9a-fA-F]{6}$/.test(val)) {
+        applyCustomColor(val);
+      }
+    });
+
+    customHexInput.addEventListener("change", (e) => {
+      applyCustomColor(e.target.value);
+    });
+  }
 
   // Glow
   settingGlow.addEventListener("change", () => {

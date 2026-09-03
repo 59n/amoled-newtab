@@ -88,11 +88,13 @@ test("loadSettings merges defaults and persists changes", async () => {
   assert.equal(settings.timeFormat, "12h");
   assert.equal(settings.eyeVariant, "classic");
 
-  await saveSettings({ ...settings, theme: "matrix", timeFormat: "24h", eyeVariant: "wide" });
+  await saveSettings({ ...settings, theme: "matrix", timeFormat: "24h", eyeVariant: "wide", accentColor: "#ff007f", customAccentColor: "#ff007f" });
   const updated = await loadSettings();
   assert.equal(updated.theme, "matrix");
   assert.equal(updated.timeFormat, "24h");
   assert.equal(updated.eyeVariant, "wide");
+  assert.equal(updated.accentColor, "#ff007f");
+  assert.equal(updated.customAccentColor, "#ff007f");
   assert.equal(updated.showClock, true);
 });
 

@@ -118,12 +118,35 @@
               <span class="setting-desc">Highlights, clock, and focus accents</span>
             </div>
             <div class="color-picker-group" id="accent-swatches">
-              <button type="button" class="color-swatch-btn active" data-color="white" style="--swatch:#f0ebdf" title="Warm White"></button>
+              <button type="button" class="color-swatch-btn" data-color="white" style="--swatch:#f0ebdf" title="Warm White"></button>
               <button type="button" class="color-swatch-btn" data-color="amber" style="--swatch:#ffb454" title="Cyber Amber"></button>
-              <button type="button" class="color-swatch-btn" data-color="green" style="--swatch:#4ade80" title="Terminal Green"></button>
-              <button type="button" class="color-swatch-btn" data-color="cyan" style="--swatch:#38bdf8" title="Ice Cyan"></button>
-              <button type="button" class="color-swatch-btn" data-color="purple" style="--swatch:#c084fc" title="Synthwave Purple"></button>
+              <button type="button" class="color-swatch-btn" data-color="yellow" style="--swatch:#facc15" title="Electric Gold"></button>
+              <button type="button" class="color-swatch-btn" data-color="orange" style="--swatch:#fb923c" title="Magma Orange"></button>
+              <button type="button" class="color-swatch-btn" data-color="red" style="--swatch:#f87171" title="Crimson Red"></button>
               <button type="button" class="color-swatch-btn" data-color="rose" style="--swatch:#fb7185" title="Sunset Rose"></button>
+              <button type="button" class="color-swatch-btn" data-color="fuchsia" style="--swatch:#e879f9" title="Neon Fuchsia"></button>
+              <button type="button" class="color-swatch-btn" data-color="purple" style="--swatch:#c084fc" title="Synthwave Purple"></button>
+              <button type="button" class="color-swatch-btn" data-color="blue" style="--swatch:#60a5fa" title="Cobalt Blue"></button>
+              <button type="button" class="color-swatch-btn" data-color="cyan" style="--swatch:#38bdf8" title="Ice Cyan"></button>
+              <button type="button" class="color-swatch-btn" data-color="mint" style="--swatch:#2dd4bf" title="Tokyo Mint"></button>
+              <button type="button" class="color-swatch-btn" data-color="green" style="--swatch:#4ade80" title="Terminal Green"></button>
+
+              <label class="color-swatch-custom" id="custom-swatch-label" title="Custom Color Picker">
+                <input type="color" id="custom-accent-picker" class="custom-color-input" value="#00ffcc">
+                <span class="custom-swatch-preview">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                    <path d="M2 2l7.586 7.586"/>
+                    <circle cx="11" cy="11" r="2"/>
+                  </svg>
+                </span>
+              </label>
+
+              <div class="custom-hex-wrap" id="custom-hex-wrap" title="Enter 6-digit hex code">
+                <span class="custom-hex-prefix">#</span>
+                <input type="text" id="custom-hex-input" class="custom-hex-input" maxlength="6" placeholder="00FFCC" spellcheck="false" autocomplete="off">
+              </div>
             </div>
           </div>
 
