@@ -66,6 +66,16 @@ class EyesDisplay {
         this.blinkRate = this.options.blinkRate || "normal"
         this.idleSleep = this.options.idleSleep !== false
         this.isSleeping = false
+        this.focusTarget = null
+        this.lastPointerX = 0
+        this.lastPointerY = 0
+        this.lastPointerTime = 0
+        this.lastWhipDx = 0
+        this.lastWhipTime = 0
+        this.whipCount = 0
+        this.isDizzy = false
+        this.dizzyStart = 0
+        this.dizzyUntil = 0
 
         this.sourceWidth = 288
         this.sourceHeight = 112
@@ -556,10 +566,35 @@ class EyesDisplay {
         if (!this.follow) {
             return
         }
+        const now = performance.now()
+        if (this.lastPointerTime > 0) {
+            const dt = Math.max(1, now - this.lastPointerTime)
+            const dx = event.clientX - this.lastPointerX
+            const dy = event.clientY - this.lastPointerY
+            const speed = Math.hypot(dx, dy) / dt
+
+            if (speed > 2.6 && Math.abs(dx) > 35) {
+                if (this.lastWhipDx * dx < 0 && now - this.lastWhipTime < 380) {
+                    this.whipCount = (this.whipCount || 0) + 1
+                    if (this.whipCount >= 3) {
+                        this.triggerDizzy(now)
+                        this.whipCount = 0
+                    }
+                } else if (now - this.lastWhipTime > 400) {
+                    this.whipCount = 1
+                }
+                this.lastWhipDx = dx
+                this.lastWhipTime = now
+            }
+        }
+        this.lastPointerX = event.clientX
+        this.lastPointerY = event.clientY
+        this.lastPointerTime = now
+
         this.pointer.x = event.clientX
         this.pointer.y = event.clientY
         this.pointer.active = true
-        this.idleStart = performance.now()
+        this.idleStart = now
         this.pendingIdleBlink = false
     }
 
@@ -596,12 +631,24 @@ class EyesDisplay {
         }
     }
 
-    handleClick() {
+    handleClick(event) {
         const now = performance.now()
+        const rect = this.element.getBoundingClientRect()
+        const clickX = event ? event.clientX : rect.left + rect.width / 2
+        const isLeftEye = clickX < rect.left + rect.width / 2
+
+        this.element.classList.remove("eyes-flinch")
+        void this.element.offsetWidth
+        this.element.classList.add("eyes-flinch")
+        setTimeout(() => this.element.classList.remove("eyes-flinch"), 300)
+
+        this.avertX = isLeftEye ? this.frameColumns - 1 : 0
+        this.avertUntil = now + 700
+
         this.startBlink(now, 70)
         window.setTimeout(() => {
-            this.startBlink(performance.now(), 160)
-        }, 120)
+            this.startBlink(performance.now(), 150)
+        }, 110)
     }
 
     handleContextMenu(event) {
@@ -617,17 +664,29 @@ class EyesDisplay {
     }
 
     getTrackedFrame() {
+        let px = this.pointer.x
+        let py = this.pointer.y
+
+        if (this.focusTarget) {
+            px = this.focusTarget.x
+            py = this.focusTarget.y
+        }
+
         const rect = this.element.getBoundingClientRect()
         const centerX = rect.left + rect.width / 2
         const centerY = rect.top + rect.height / 2
         const maxDistanceX = Math.max(1, rect.width * 0.45)
         const maxDistanceY = Math.max(1, rect.height * 0.24)
-        const deltaX = (this.pointer.x - centerX) / maxDistanceX
-        const deltaY = (this.pointer.y - centerY) / maxDistanceY
+        const deltaX = (px - centerX) / maxDistanceX
+        const deltaY = (py - centerY) / maxDistanceY
+
+        const hour = new Date().getHours()
+        const isLateNight = hour >= 0 && hour < 6
+        const lateNightDroop = isLateNight ? 0.35 : 0
 
         return {
             x: this.clamp((deltaX + 1) * ((this.frameColumns - 1) / 2), 0, this.frameColumns - 1),
-            y: this.clamp(deltaY * 1.55 + Math.floor(this.frameRows / 2), 0, this.frameRows - 1),
+            y: this.clamp((deltaY + lateNightDroop) * 1.55 + Math.floor(this.frameRows / 2), 0, this.frameRows - 1),
         }
     }
 
@@ -700,7 +759,30 @@ class EyesDisplay {
             this.renderBlink()
         } else {
             let targetFrame
-            if (timestamp < this.scrollUntil) {
+            if (this.isDizzy) {
+                if (timestamp >= this.dizzyUntil) {
+                    this.isDizzy = false
+                    this.element.classList.remove("eyes-dizzy")
+                    this.startBlink(timestamp, 140)
+                    setTimeout(() => this.startBlink(performance.now(), 120), 180)
+                } else {
+                    const elapsed = timestamp - this.dizzyStart
+                    const angle = elapsed * 0.016
+                    const spiralDecay = Math.max(0.35, 1 - elapsed / 1600)
+                    targetFrame = {
+                        x: this.clamp(
+                            Math.floor(this.frameColumns / 2) + Math.cos(angle) * (this.frameColumns * 0.42) * spiralDecay,
+                            0,
+                            this.frameColumns - 1
+                        ),
+                        y: this.clamp(
+                            Math.floor(this.frameRows / 2) + Math.sin(angle) * (this.frameRows * 0.42) * spiralDecay,
+                            0,
+                            this.frameRows - 1
+                        ),
+                    }
+                }
+            } else if (timestamp < this.scrollUntil) {
                 targetFrame = {
                     x: Math.floor(this.frameColumns / 2),
                     y: this.scrollY,
@@ -740,7 +822,25 @@ class EyesDisplay {
         this.resetBlinkTimer(now)
     }
 
-    startBlink(timestamp, duration = 130) {
+    setFocusTarget(target) {
+        this.focusTarget = target
+    }
+
+    triggerDizzy(now) {
+        if (this.isDizzy) return
+        this.isDizzy = true
+        this.dizzyStart = now
+        this.dizzyUntil = now + 1600
+        this.element.classList.add("eyes-dizzy")
+        this.startBlink(now, 80)
+    }
+
+    startBlink(timestamp, duration) {
+        if (duration === undefined) {
+            const hour = new Date().getHours()
+            const isLateNight = hour >= 0 && hour < 6
+            duration = isLateNight ? 180 : 130
+        }
         this.isBlinking = true
         this.blinkEndsAt = timestamp + duration
     }

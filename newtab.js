@@ -443,6 +443,7 @@ function renderChips() {
     add.addEventListener("click", () => openEditor(null));
     chipsEl.append(add);
   }
+  setupCuriosityFocus();
 }
 
 async function persistShortcuts() {
@@ -1197,6 +1198,29 @@ document.addEventListener("keydown", (e) => {
 
 
 // -------------------------------------------------------------
+
+function setupCuriosityFocus() {
+  const targets = document.querySelectorAll(".chip, #clock, blockquote, #top-controls button, #zoom-controls button");
+  targets.forEach((target) => {
+    if (target.dataset.hasCuriosityListener) return;
+    target.dataset.hasCuriosityListener = "true";
+
+    target.addEventListener("mouseenter", () => {
+      if (!eyesDisplay) return;
+      const rect = target.getBoundingClientRect();
+      eyesDisplay.setFocusTarget({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+    });
+
+    target.addEventListener("mouseleave", () => {
+      if (!eyesDisplay) return;
+      eyesDisplay.setFocusTarget(null);
+    });
+  });
+}
+
 // Initialization
 // -------------------------------------------------------------
 async function init() {
@@ -1222,6 +1246,7 @@ async function init() {
   loadQuote();
   renderChips();
   setupIdleAndHotkeys();
+  setupCuriosityFocus();
 
   tick();
   setInterval(tick, 1000);
