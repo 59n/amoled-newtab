@@ -238,7 +238,8 @@ async function loadQuote() {
 // -------------------------------------------------------------
 function favicon(url) {
   try {
-    return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`;
+    const host = new URL(url).hostname;
+    return `https://icons.duckduckgo.com/ip3/${host}.ico`;
   } catch {
     return "";
   }
@@ -281,15 +282,29 @@ function renderChips() {
       } else if (settings.iconStyle === "letter") {
         el.append(letterEl(chip.name));
       } else {
-        const host = favicon(chip.url);
-        if (host) {
+        const customIcon = chip.icon && chip.icon.trim();
+        const primaryIcon = customIcon || favicon(chip.url);
+        if (primaryIcon) {
           const img = document.createElement("img");
           img.width = 16;
           img.height = 16;
           img.alt = "";
-          img.src = host;
+          img.src = primaryIcon;
+          let stage = customIcon ? 2 : 0;
           img.addEventListener("error", () => {
-            img.replaceWith(letterEl(chip.name));
+            stage++;
+            try {
+              const host = new URL(chip.url).hostname;
+              if (stage === 1) {
+                img.src = `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
+              } else if (stage === 2) {
+                img.src = `${new URL(chip.url).origin}/favicon.ico`;
+              } else {
+                img.replaceWith(letterEl(chip.name));
+              }
+            } catch {
+              img.replaceWith(letterEl(chip.name));
+            }
           });
           el.append(img);
         } else {
@@ -365,6 +380,7 @@ async function persistShortcuts() {
 // -------------------------------------------------------------
 const fieldName = document.getElementById("field-name");
 const fieldUrl = document.getElementById("field-url");
+const fieldIcon = document.getElementById("field-icon");
 const modalError = document.getElementById("modal-error");
 const modalTitle = document.getElementById("modal-title");
 let editingId = null;
@@ -376,6 +392,7 @@ function openEditor(id) {
   const chip = shortcuts.find((c) => c.id === id);
   fieldName.value = chip?.name || "";
   fieldUrl.value = chip?.url || "";
+  if (fieldIcon) fieldIcon.value = chip?.icon || "";
   modalTitle.textContent = chip && !isEmptyChip(chip) ? "Edit shortcut" : "New shortcut";
   modal.classList.remove("hidden");
   fieldName.focus();
@@ -402,11 +419,20 @@ async function saveEditor() {
     modalError.classList.remove("hidden");
     return;
   }
+  const icon = fieldIcon ? fieldIcon.value.trim() : "";
   if (editingId) {
-    shortcuts = shortcuts.map((c) => (c.id === editingId ? { ...c, name, url } : c));
+    shortcuts = shortcuts.map((c) => {
+      if (c.id !== editingId) return c;
+      const updated = { ...c, name, url };
+      if (icon) updated.icon = icon;
+      else delete updated.icon;
+      return updated;
+    });
   } else {
     if (shortcuts.length >= MAX_CHIPS) return;
-    shortcuts = [...shortcuts, { id: newId(), name, url }];
+    const newEntry = { id: newId(), name, url };
+    if (icon) newEntry.icon = icon;
+    shortcuts = [...shortcuts, newEntry];
   }
   await persistShortcuts();
   renderChips();
