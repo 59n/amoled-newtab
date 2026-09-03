@@ -1843,9 +1843,31 @@ function setupCuriosityFocus() {
   });
 }
 
+
+// Immediate synchronous warm render from cache to eliminate CLS / pop-in
+try {
+  tick();
+  const syncQuote = localStorage.getItem("quoteCache");
+  if (syncQuote) {
+    const q = JSON.parse(syncQuote);
+    if (q && q.text) renderQuote(q);
+  }
+  const syncShortcuts = localStorage.getItem("shortcuts");
+  if (syncShortcuts) {
+    const sc = JSON.parse(syncShortcuts);
+    if (Array.isArray(sc) && sc.length) {
+      shortcuts = sc;
+      renderChips();
+    }
+  }
+} catch {}
+
 // Initialization
 // -------------------------------------------------------------
 async function init() {
+  tick();
+  setInterval(tick, 1000);
+
   settings = await loadSettings();
   shortcuts = await loadShortcuts();
 
@@ -1872,8 +1894,11 @@ async function init() {
   setupSearchBar();
   setupCuriosityFocus();
 
-  tick();
-  setInterval(tick, 1000);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      mainEl?.classList.add("ready");
+    });
+  });
 }
 
 init();

@@ -146,7 +146,6 @@ body {
 
 main {
   zoom: var(--page-scale);
-  transition: transform 260ms cubic-bezier(0.12, 0.8, 0.32, 1);
   will-change: transform;
   display: flex;
   flex-direction: column;
@@ -160,6 +159,10 @@ main {
   position: relative;
   z-index: 2;
   box-sizing: border-box;
+}
+
+main.ready {
+  transition: transform 260ms cubic-bezier(0.12, 0.8, 0.32, 1);
 }
 
 /* Prevent flashing of zoom buttons when hidden in settings */
@@ -448,6 +451,7 @@ body.has-glow #clock {
 
 .quote cite, #author {
   display: block;
+  min-height: 1.2em;
   margin-top: 0.38rem;
   font-family: "Iowan Old Style", "Times New Roman", Georgia, serif;
   font-size: clamp(0.66rem, 0.95vw, 0.78rem);
@@ -1385,7 +1389,7 @@ body.is-sleeping .eyes {
   color: var(--text-muted);
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 50%;
   cursor: pointer;
   transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
 }
