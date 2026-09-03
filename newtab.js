@@ -997,12 +997,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Double clicking empty background toggles settings
-document.addEventListener("dblclick", (e) => {
-  if (e.target === document.body || e.target.tagName === "MAIN") {
-    openOverlay();
-  }
-});
 
 // -------------------------------------------------------------
 // Initialization

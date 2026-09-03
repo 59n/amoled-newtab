@@ -46,7 +46,7 @@ An ultra-clean, battery-friendly new tab page for Chromium browsers featuring an
   - Global scaling from 70% to 200% in 10% steps via settings slider or corner `−`/`+` buttons (with toggle to hide corner buttons).
   - Preferences persisted across sessions via `chrome.storage.sync`.
 - **Comprehensive Tabbed Settings Panel**:
-  - Accessible via the gear icon (`⚙`) in the top right, pressing <kbd>s</kbd> or <kbd>,</kbd>, or double-clicking the background.
+  - Accessible via the gear icon (`⚙`) in the top right, pressing <kbd>s</kbd> or <kbd>,</kbd>, or right-clicking empty space.
   - Organized tabs: **Appearance**, **Eyes**, **Clock & Quote**, **Shortcuts**, and **Data**.
   - Backup & Restore: Export configuration to JSON, import backups, and reset to defaults.
   - Keyboard accessible (`Escape` closes all modals, menus, and overlays).
@@ -79,7 +79,6 @@ An ultra-clean, battery-friendly new tab page for Chromium browsers featuring an
 | | Right-click | Open animated context menu (Edit, Clear, Delete) |
 | | `+ add` button | Add a new shortcut |
 | **Background** | Right-click | Quick actions menu (Settings, Cycle Eyes, Toggle Glow, New Quote) |
-| | Double-click | Quick open Settings modal |
 | **Zoom** | `−` / `+` buttons | Adjust scale by 10% |
 | | Settings slider | Fine-tune zoom between 70% and 200% |
 | **Settings** | `⚙` (top-right) | Open tabbed settings modal |
