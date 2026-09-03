@@ -76,6 +76,9 @@ class EyesDisplay {
         this.isDizzy = false
         this.dizzyStart = 0
         this.dizzyUntil = 0
+        this.dizzyCooldownUntil = 0
+        this.dizzyTimer = null
+        this.postDizzyTimeout = null
         this.starsContainer = null
         this.starEls = []
 
@@ -583,18 +586,17 @@ class EyesDisplay {
             return
         }
         const now = performance.now()
-        if (this.lastPointerTime > 0) {
+        if (!this.isDizzy && now >= this.dizzyCooldownUntil && this.lastPointerTime > 0) {
             const dt = Math.max(1, now - this.lastPointerTime)
             const dx = event.clientX - this.lastPointerX
             const dy = event.clientY - this.lastPointerY
             const speed = Math.hypot(dx, dy) / dt
 
-            if (speed > 2.6 && Math.abs(dx) > 35) {
+            if (dt < 250 && speed > 2.6 && Math.abs(dx) > 35) {
                 if (this.lastWhipDx * dx < 0 && now - this.lastWhipTime < 380) {
                     this.whipCount = (this.whipCount || 0) + 1
                     if (this.whipCount >= 3) {
                         this.triggerDizzy(now)
-                        this.whipCount = 0
                     }
                 } else if (now - this.lastWhipTime > 400) {
                     this.whipCount = 1
@@ -617,6 +619,12 @@ class EyesDisplay {
     handlePointerLeave() {
         this.pointer.active = false
         this.idleStart = performance.now()
+        this.lastPointerTime = 0
+        this.lastPointerX = 0
+        this.lastPointerY = 0
+        this.whipCount = 0
+        this.lastWhipDx = 0
+        this.lastWhipTime = 0
     }
 
     handleTouchMove(event) {
@@ -757,7 +765,15 @@ class EyesDisplay {
             return
         }
 
-        if (this.blinkRate !== "off") {
+        if (this.isDizzy) {
+            if (timestamp >= this.dizzyUntil) {
+                this.stopDizzy(timestamp)
+            } else {
+                this.renderDizzyStars(timestamp)
+            }
+        }
+
+        if (this.blinkRate !== "off" && !this.isDizzy) {
             if (isEnteringIdle && !this.isBlinking) {
                 this.startBlink(timestamp, 150)
                 this.pendingIdleBlink = false
@@ -776,29 +792,20 @@ class EyesDisplay {
         } else {
             let targetFrame
             if (this.isDizzy) {
-                if (timestamp >= this.dizzyUntil) {
-                    this.isDizzy = false
-                    this.element.classList.remove("eyes-dizzy")
-                    if (this.starsContainer) this.starsContainer.style.display = "none"
-                    this.startBlink(timestamp, 140)
-                    setTimeout(() => this.startBlink(performance.now(), 120), 180)
-                } else {
-                    this.renderDizzyStars(timestamp)
-                    const elapsed = timestamp - this.dizzyStart
-                    const angle = elapsed * 0.016
-                    const spiralDecay = Math.max(0.35, 1 - elapsed / 1600)
-                    targetFrame = {
-                        x: this.clamp(
-                            Math.floor(this.frameColumns / 2) + Math.cos(angle) * (this.frameColumns * 0.42) * spiralDecay,
-                            0,
-                            this.frameColumns - 1
-                        ),
-                        y: this.clamp(
-                            Math.floor(this.frameRows / 2) + Math.sin(angle) * (this.frameRows * 0.42) * spiralDecay,
-                            0,
-                            this.frameRows - 1
-                        ),
-                    }
+                const elapsed = timestamp - this.dizzyStart
+                const angle = elapsed * 0.016
+                const spiralDecay = Math.max(0.35, 1 - elapsed / 1600)
+                targetFrame = {
+                    x: this.clamp(
+                        Math.floor(this.frameColumns / 2) + Math.cos(angle) * (this.frameColumns * 0.42) * spiralDecay,
+                        0,
+                        this.frameColumns - 1
+                    ),
+                    y: this.clamp(
+                        Math.floor(this.frameRows / 2) + Math.sin(angle) * (this.frameRows * 0.42) * spiralDecay,
+                        0,
+                        this.frameRows - 1
+                    ),
                 }
             } else if (timestamp < this.scrollUntil) {
                 targetFrame = {
@@ -886,12 +893,57 @@ class EyesDisplay {
         })
     }
     triggerDizzy(now) {
-        if (this.isDizzy) return
+        if (this.isDizzy || now < this.dizzyCooldownUntil) return
         this.isDizzy = true
         this.dizzyStart = now
         this.dizzyUntil = now + 1600
+        this.whipCount = 0
+
+        if (this.postDizzyTimeout) {
+            clearTimeout(this.postDizzyTimeout)
+            this.postDizzyTimeout = null
+        }
+        if (this.dizzyTimer) {
+            clearTimeout(this.dizzyTimer)
+            this.dizzyTimer = null
+        }
+
+        this.dizzyTimer = setTimeout(() => {
+            this.stopDizzy(performance.now())
+        }, 1650)
+
         this.element.classList.add("eyes-dizzy")
-        this.startBlink(now, 80)
+        if (this.starsContainer) {
+            this.starsContainer.style.display = "block"
+        }
+        this.startBlink(now, 70)
+    }
+
+    stopDizzy(now = performance.now()) {
+        if (!this.isDizzy) return
+        this.isDizzy = false
+        this.dizzyCooldownUntil = now + 500
+        this.whipCount = 0
+        this.lastWhipDx = 0
+        this.lastWhipTime = 0
+
+        if (this.dizzyTimer) {
+            clearTimeout(this.dizzyTimer)
+            this.dizzyTimer = null
+        }
+
+        this.element.classList.remove("eyes-dizzy")
+        if (this.starsContainer) {
+            this.starsContainer.style.display = "none"
+        }
+
+        this.startBlink(now, 140)
+        this.postDizzyTimeout = setTimeout(() => {
+            if (!this.isDizzy) {
+                this.startBlink(performance.now(), 120)
+            }
+            this.postDizzyTimeout = null
+        }, 180)
     }
 
     startBlink(timestamp, duration) {
