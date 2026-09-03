@@ -20,6 +20,11 @@
       <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
       <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
     </div>
+    <button id="btn-bookmarks" type="button" aria-label="Bookmarks" title="Bookmarks Bar Bridge (B)">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
     <button id="gear" type="button" aria-label="Settings">⚙</button>
   </div>
 
@@ -376,6 +381,17 @@
 
           <div class="setting-row">
             <div class="setting-info">
+              <label for="setting-show-bookmarks-btn">Bookmarks Bridge Button</label>
+              <span class="setting-desc">Show bookmarks button in top bar (Hotkey: B)</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-bookmarks-btn">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
               <label for="setting-icon-style">Icon Style</label>
               <span class="setting-desc">Visual presentation of shortcut chips</span>
             </div>
@@ -423,6 +439,41 @@
       </div>
     </div>
   </div>
+
+  <!-- Bookmarks Drawer -->
+  <aside id="bookmarks-drawer" class="bookmarks-drawer hidden" aria-label="Browser Bookmarks">
+    <div class="bookmarks-header">
+      <div class="bookmarks-title-row">
+        <div class="bookmarks-heading">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>Bookmarks Bridge</span>
+        </div>
+        <div class="bookmarks-header-actions">
+          <button type="button" id="btn-sync-bookmarks-chips" class="btn-drawer-action" title="Populate first 8 bookmarks as shortcut chips">
+            ⚡ Sync to Chips
+          </button>
+          <button type="button" id="btn-close-bookmarks" class="drawer-close-btn" aria-label="Close bookmarks">&times;</button>
+        </div>
+      </div>
+
+      <div class="bookmarks-search-box">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="bookmarks-search-input" placeholder="Search bookmarks... (Esc to close)" autocomplete="off">
+      </div>
+
+      <div id="bookmarks-folders-tabs" class="bookmarks-folder-tabs"></div>
+    </div>
+
+    <div id="bookmarks-list" class="bookmarks-list">
+      <!-- Bookmarks rendered here -->
+    </div>
+  </aside>
+  <div id="bookmarks-backdrop" class="drawer-backdrop hidden"></div>
 
   <div id="menu" class="hidden" role="menu"></div>
   <div id="toast" class="hidden" role="status"></div>

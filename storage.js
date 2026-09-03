@@ -44,6 +44,7 @@ export const DEFAULT_SETTINGS = {
   openInNewTab: false,
   iconStyle: "favicon", // "favicon", "letter", "none"
   keyboardShortcuts: true,
+  showBookmarksBtn: true,
 };
 
 export function isEmptyChip(chip) {

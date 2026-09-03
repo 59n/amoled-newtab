@@ -882,6 +882,11 @@ function applySettings(cfg, isInitial = false) {
   document.body.classList.toggle("has-glow", Boolean(cfg.glowEffect));
   document.body.classList.toggle("has-cursor-aura", Boolean(cfg.cursorAura));
 
+  const btnBookmarksEl = document.getElementById("btn-bookmarks");
+  if (btnBookmarksEl) {
+    btnBookmarksEl.classList.toggle("hidden", !cfg.showBookmarksBtn);
+  }
+
   // Instant toggle for zoom buttons (gear icon ALWAYS stays)
   document.documentElement.classList.toggle("hide-zoom", !cfg.showZoomControls);
   if (zoomButtons) {
@@ -960,6 +965,8 @@ function syncSettingsForm() {
   settingOpenNewTab.checked = Boolean(settings.openInNewTab);
   settingIconStyle.value = settings.iconStyle;
   if (settingKeyboardShortcuts) settingKeyboardShortcuts.checked = Boolean(settings.keyboardShortcuts);
+  const settingShowBookmarks = document.getElementById("setting-show-bookmarks-btn");
+  if (settingShowBookmarks) settingShowBookmarks.checked = Boolean(settings.showBookmarksBtn);
 }
 
 function setupSettingsListeners() {
@@ -1074,6 +1081,12 @@ function setupSettingsListeners() {
       updateAndSaveSettings({ keyboardShortcuts: settingKeyboardShortcuts.checked });
     });
   }
+  const settingShowBookmarks = document.getElementById("setting-show-bookmarks-btn");
+  if (settingShowBookmarks) {
+    settingShowBookmarks.addEventListener("change", () => {
+      updateAndSaveSettings({ showBookmarksBtn: settingShowBookmarks.checked });
+    });
+  }
 
   // Data: Export
   btnExport.addEventListener("click", () => {
@@ -1180,10 +1193,18 @@ document.addEventListener("keydown", (e) => {
     closeOverlay();
     closeModal();
     closeMenu();
+    closeBookmarksDrawer();
     return;
   }
   const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
   if (!isInput) {
+    // Pressing 'b' toggles Bookmarks Bridge
+    if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      toggleBookmarksDrawer();
+      return;
+    }
+
     // Pressing 's', ',', or Cmd/Ctrl+, toggles settings
     if (e.key.toLowerCase() === "s" || e.key === "," || ((e.metaKey || e.ctrlKey) && e.key === ",")) {
       e.preventDefault();
@@ -1196,6 +1217,306 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+
+
+// -------------------------------------------------------------
+// Bookmarks Bar Bridge
+// -------------------------------------------------------------
+const bookmarksDrawer = document.getElementById("bookmarks-drawer");
+const bookmarksBackdrop = document.getElementById("bookmarks-backdrop");
+const btnBookmarks = document.getElementById("btn-bookmarks");
+const btnCloseBookmarks = document.getElementById("btn-close-bookmarks");
+const bookmarksSearchInput = document.getElementById("bookmarks-search-input");
+const bookmarksFolderTabs = document.getElementById("bookmarks-folders-tabs");
+const bookmarksList = document.getElementById("bookmarks-list");
+const btnSyncBookmarksChips = document.getElementById("btn-sync-bookmarks-chips");
+
+let allBookmarks = [];
+let bookmarkFolders = ["All"];
+let activeBookmarkFolder = "All";
+
+async function loadBookmarks() {
+  allBookmarks = [];
+  bookmarkFolders = ["All"];
+
+  // 1. Try Chrome Bookmarks API
+  if (typeof chrome !== "undefined" && chrome.bookmarks && chrome.bookmarks.getTree) {
+    try {
+      const tree = await new Promise((resolve) => chrome.bookmarks.getTree(resolve));
+      if (tree && tree.length > 0) {
+        parseBookmarkNodes(tree[0], "");
+      }
+    } catch (err) {
+      console.warn("Chrome Bookmarks API error:", err);
+    }
+  }
+
+  // 2. Fallback / preview bookmarks if Chrome API unavailable or empty
+  if (allBookmarks.length === 0) {
+    allBookmarks = [
+      { id: "b1", title: "GitHub", url: "https://github.com", folder: "Bookmarks Bar" },
+      { id: "b2", title: "Hacker News", url: "https://news.ycombinator.com", folder: "Bookmarks Bar" },
+      { id: "b3", title: "YouTube", url: "https://youtube.com", folder: "Bookmarks Bar" },
+      { id: "b4", title: "Reddit", url: "https://reddit.com", folder: "Bookmarks Bar" },
+      { id: "b5", title: "Wikipedia", url: "https://wikipedia.org", folder: "Reading List" },
+      { id: "b6", title: "MDN Web Docs", url: "https://developer.mozilla.org", folder: "Dev" },
+      { id: "b7", title: "ArXiv", url: "https://arxiv.org", folder: "Reading List" },
+      { id: "b8", title: "X / Twitter", url: "https://x.com", folder: "Bookmarks Bar" },
+    ];
+    bookmarkFolders = ["All", "Bookmarks Bar", "Dev", "Reading List"];
+  }
+
+  renderBookmarkFolderTabs();
+  renderBookmarksList();
+}
+
+function parseBookmarkNodes(node, currentFolder) {
+  const folderName = node.title || currentFolder || "Bookmarks Bar";
+  if (node.url) {
+    allBookmarks.push({
+      id: node.id || String(Math.random()),
+      title: node.title || node.url,
+      url: node.url,
+      folder: currentFolder || "Bookmarks Bar",
+    });
+  }
+  if (node.children && node.children.length > 0) {
+    if (node.title && !bookmarkFolders.includes(node.title) && node.title !== "root") {
+      bookmarkFolders.push(node.title);
+    }
+    node.children.forEach((child) => {
+      parseBookmarkNodes(child, node.title || currentFolder);
+    });
+  }
+}
+
+function renderBookmarkFolderTabs() {
+  if (!bookmarksFolderTabs) return;
+  bookmarksFolderTabs.innerHTML = "";
+
+  bookmarkFolders.forEach((folder) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `folder-tab-btn${folder === activeBookmarkFolder ? " active" : ""}`;
+    btn.textContent = folder;
+    btn.addEventListener("click", () => {
+      activeBookmarkFolder = folder;
+      renderBookmarkFolderTabs();
+      renderBookmarksList();
+    });
+    bookmarksFolderTabs.appendChild(btn);
+  });
+}
+
+function renderBookmarksList() {
+  if (!bookmarksList) return;
+  bookmarksList.innerHTML = "";
+
+  const query = (bookmarksSearchInput?.value || "").trim().toLowerCase();
+
+  const filtered = allBookmarks.filter((bm) => {
+    const matchesFolder = activeBookmarkFolder === "All" || bm.folder === activeBookmarkFolder;
+    if (!matchesFolder) return false;
+    if (!query) return true;
+    return (
+      bm.title.toLowerCase().includes(query) ||
+      bm.url.toLowerCase().includes(query)
+    );
+  });
+
+  if (filtered.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "bookmarks-empty";
+    empty.textContent = query
+      ? `No bookmarks matching "${query}"`
+      : "No bookmarks in this folder";
+    bookmarksList.appendChild(empty);
+    return;
+  }
+
+  filtered.forEach((bm) => {
+    let hostname = "";
+    try {
+      hostname = new URL(bm.url).hostname.replace(/^www./, "");
+    } catch {
+      hostname = bm.url;
+    }
+
+    const item = document.createElement("div");
+    item.className = "bookmark-item";
+    item.setAttribute("role", "button");
+    item.tabIndex = 0;
+
+    const left = document.createElement("div");
+    left.className = "bookmark-left";
+
+    const img = document.createElement("img");
+    img.className = "bookmark-icon";
+    img.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    img.alt = "";
+    img.onerror = () => {
+      img.style.display = "none";
+      const letter = document.createElement("div");
+      letter.className = "bookmark-letter-icon";
+      letter.textContent = (bm.title || hostname || "?").charAt(0).toUpperCase();
+      left.prepend(letter);
+    };
+
+    const info = document.createElement("div");
+    info.className = "bookmark-info";
+
+    const title = document.createElement("span");
+    title.className = "bookmark-title";
+    title.textContent = bm.title;
+
+    const domain = document.createElement("span");
+    domain.className = "bookmark-domain";
+    domain.textContent = hostname;
+
+    info.append(title, domain);
+    left.append(img, info);
+
+    const actions = document.createElement("div");
+    actions.className = "bookmark-actions";
+
+    const pinBtn = document.createElement("button");
+    pinBtn.type = "button";
+    pinBtn.className = "btn-pin-chip";
+    pinBtn.textContent = "+ Pin to Chips";
+    pinBtn.title = "Add to shortcut chips";
+    pinBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      pinBookmarkToChips(bm);
+    });
+
+    actions.appendChild(pinBtn);
+    item.append(left, actions);
+
+    const openBookmark = () => {
+      if (settings.openInNewTab) {
+        window.open(bm.url, "_blank", "noopener,noreferrer");
+      } else {
+        window.location.href = bm.url;
+      }
+    };
+
+    item.addEventListener("click", openBookmark);
+    item.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") openBookmark();
+    });
+
+    bookmarksList.appendChild(item);
+  });
+}
+
+async function pinBookmarkToChips(bm) {
+  let hostname = "";
+  try {
+    hostname = new URL(bm.url).hostname.replace(/^www./, "");
+  } catch {
+    hostname = bm.url;
+  }
+  const cleanName = bm.title.trim().length > 0 ? bm.title.trim().slice(0, 18) : hostname;
+
+  const emptyIndex = shortcuts.findIndex((c) => isEmptyChip(c));
+  if (emptyIndex >= 0) {
+    shortcuts[emptyIndex] = {
+      id: shortcuts[emptyIndex].id || `custom-${Date.now()}`,
+      name: cleanName,
+      url: bm.url,
+    };
+  } else if (shortcuts.length < MAX_CHIPS) {
+    shortcuts.push({
+      id: `custom-${Date.now()}`,
+      name: cleanName,
+      url: bm.url,
+    });
+  } else {
+    shortcuts[MAX_CHIPS - 1] = {
+      id: `custom-${Date.now()}`,
+      name: cleanName,
+      url: bm.url,
+    };
+  }
+
+  await persistShortcuts();
+  renderChips();
+  showToast(`Pinned "${cleanName}" to chips`);
+}
+
+async function syncBookmarksToChips() {
+  if (allBookmarks.length === 0) {
+    showToast("No bookmarks found to sync");
+    return;
+  }
+
+  const candidatePool = allBookmarks.filter((b) =>
+    activeBookmarkFolder !== "All" ? b.folder === activeBookmarkFolder : true
+  );
+  const toSync = (candidatePool.length > 0 ? candidatePool : allBookmarks).slice(0, MAX_CHIPS);
+
+  shortcuts = toSync.map((bm, idx) => {
+    let hostname = "";
+    try {
+      hostname = new URL(bm.url).hostname.replace(/^www./, "");
+    } catch {
+      hostname = bm.url;
+    }
+    const cleanName = bm.title.trim().length > 0 ? bm.title.trim().slice(0, 18) : hostname;
+    return {
+      id: `synced-${idx}-${Date.now()}`,
+      name: cleanName,
+      url: bm.url,
+    };
+  });
+
+  await persistShortcuts();
+  renderChips();
+  showToast(`Synced ${toSync.length} bookmarks to shortcut chips!`);
+}
+
+function openBookmarksDrawer() {
+  if (!bookmarksDrawer) return;
+  loadBookmarks();
+  bookmarksDrawer.classList.remove("hidden");
+  if (bookmarksBackdrop) bookmarksBackdrop.classList.remove("hidden");
+  if (bookmarksSearchInput) {
+    bookmarksSearchInput.value = "";
+    setTimeout(() => bookmarksSearchInput.focus(), 150);
+  }
+}
+
+function closeBookmarksDrawer() {
+  if (!bookmarksDrawer) return;
+  bookmarksDrawer.classList.add("hidden");
+  if (bookmarksBackdrop) bookmarksBackdrop.classList.add("hidden");
+}
+
+function toggleBookmarksDrawer() {
+  if (bookmarksDrawer && !bookmarksDrawer.classList.contains("hidden")) {
+    closeBookmarksDrawer();
+  } else {
+    openBookmarksDrawer();
+  }
+}
+
+function setupBookmarksBridge() {
+  if (btnBookmarks) {
+    btnBookmarks.addEventListener("click", toggleBookmarksDrawer);
+  }
+  if (btnCloseBookmarks) {
+    btnCloseBookmarks.addEventListener("click", closeBookmarksDrawer);
+  }
+  if (bookmarksBackdrop) {
+    bookmarksBackdrop.addEventListener("click", closeBookmarksDrawer);
+  }
+  if (bookmarksSearchInput) {
+    bookmarksSearchInput.addEventListener("input", renderBookmarksList);
+  }
+  if (btnSyncBookmarksChips) {
+    btnSyncBookmarksChips.addEventListener("click", syncBookmarksToChips);
+  }
+}
 
 // -------------------------------------------------------------
 
@@ -1246,6 +1567,7 @@ async function init() {
   loadQuote();
   renderChips();
   setupIdleAndHotkeys();
+  setupBookmarksBridge();
   setupCuriosityFocus();
 
   tick();
