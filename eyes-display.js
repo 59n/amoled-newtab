@@ -63,6 +63,7 @@ class EyesDisplay {
         this.rampId = this.options.ramp in DENSITY_RAMPS ? this.options.ramp : "classic"
         this.densityChars = DENSITY_RAMPS[this.rampId] || DENSITY_RAMPS.classic
         this.follow = this.options.follow !== false
+        this.allowDizzy = this.options.allowDizzy !== false
         this.blinkRate = this.options.blinkRate || "normal"
         this.idleSleep = this.options.idleSleep !== false
         this.isSleeping = false
@@ -200,6 +201,12 @@ class EyesDisplay {
             this.idleSleep = newOptions.idleSleep
             if (!this.idleSleep && this.isSleeping) {
                 this.wakeUp()
+            }
+        }
+        if (typeof newOptions.allowDizzy === "boolean") {
+            this.allowDizzy = newOptions.allowDizzy
+            if (!this.allowDizzy && this.isDizzy) {
+                this.stopDizzy()
             }
         }
         if (needsRebuild) {
@@ -586,7 +593,7 @@ class EyesDisplay {
             return
         }
         const now = performance.now()
-        if (!this.isDizzy && now >= this.dizzyCooldownUntil && this.lastPointerTime > 0) {
+        if (this.allowDizzy && !this.isDizzy && now >= this.dizzyCooldownUntil && this.lastPointerTime > 0) {
             const dt = Math.max(1, now - this.lastPointerTime)
             const dx = event.clientX - this.lastPointerX
             const dy = event.clientY - this.lastPointerY
@@ -901,7 +908,7 @@ class EyesDisplay {
         })
     }
     triggerDizzy(now) {
-        if (this.isDizzy || now < this.dizzyCooldownUntil) return
+        if (!this.allowDizzy || this.isDizzy || now < this.dizzyCooldownUntil) return
         this.isDizzy = true
         this.dizzyStart = now
         this.dizzyUntil = now + 1600

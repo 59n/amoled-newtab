@@ -59,6 +59,7 @@ const settingShowEyes = document.getElementById("setting-show-eyes");
 const settingEyeVariant = document.getElementById("setting-eye-variant");
 const settingEyeRamp = document.getElementById("setting-eye-ramp");
 const settingEyeFollow = document.getElementById("setting-eye-follow");
+const settingEyeDizzy = document.getElementById("setting-eye-dizzy");
 const settingEyeBlink = document.getElementById("setting-eye-blink");
 const settingEyeSleep = document.getElementById("setting-eye-sleep");
 const settingShowClock = document.getElementById("setting-show-clock");
@@ -1045,6 +1046,7 @@ function applySettings(cfg, isInitial = false) {
       follow: cfg.eyeFollow,
       blinkRate: cfg.eyeBlinkRate,
       idleSleep: cfg.eyeIdleSleep,
+      allowDizzy: cfg.eyeDizzy !== false,
     });
   }
 
@@ -1095,6 +1097,7 @@ function syncSettingsForm() {
   settingEyeVariant.value = settings.eyeVariant;
   settingEyeRamp.value = settings.eyeRamp;
   settingEyeFollow.checked = Boolean(settings.eyeFollow);
+  if (settingEyeDizzy) settingEyeDizzy.checked = settings.eyeDizzy !== false;
   settingEyeBlink.value = settings.eyeBlinkRate;
   if (settingEyeSleep) settingEyeSleep.checked = Boolean(settings.eyeIdleSleep);
 
@@ -1214,6 +1217,11 @@ function setupSettingsListeners() {
   settingEyeFollow.addEventListener("change", () => {
     updateAndSaveSettings({ eyeFollow: settingEyeFollow.checked });
   });
+  if (settingEyeDizzy) {
+    settingEyeDizzy.addEventListener("change", () => {
+      updateAndSaveSettings({ eyeDizzy: settingEyeDizzy.checked }, true);
+    });
+  }
   settingEyeBlink.addEventListener("change", () => {
     updateAndSaveSettings({ eyeBlinkRate: settingEyeBlink.value });
   });
@@ -2022,6 +2030,7 @@ async function init() {
     follow: settings.eyeFollow,
     blinkRate: settings.eyeBlinkRate,
     idleSleep: settings.eyeIdleSleep,
+    allowDizzy: settings.eyeDizzy !== false,
   });
 
   applySettings(settings, true);

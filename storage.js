@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS = {
   eyeVariant: "classic", // "classic", "sleepy", "wide", "squint", "glare", "close", "far", "random"
   eyeRamp: "classic", // "classic", "minimal", "blocks", "binary", "matrix"
   eyeFollow: true,
+  eyeDizzy: true,
   eyeBlinkRate: "normal", // "off", "calm", "normal", "frequent"
   eyeIdleSleep: true,
 
