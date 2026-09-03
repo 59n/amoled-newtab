@@ -77,25 +77,56 @@ function hasChromeSync() {
 }
 
 async function getSync(key) {
+  let val = undefined;
   if (hasChromeSync()) {
-    const o = await chrome.storage.sync.get(key);
-    return o[key];
+    try {
+      const o = await chrome.storage.sync.get(key);
+      if (o && o[key] !== undefined) {
+        val = o[key];
+      }
+    } catch (e) {
+      console.warn("chrome.storage.sync.get failed:", e);
+    }
   }
-  try {
-    const raw = localStorage.getItem("sync:" + key);
-    return raw ? JSON.parse(raw) : undefined;
-  } catch {
-    return undefined;
+  if (val === undefined && globalThis.chrome?.storage?.local) {
+    try {
+      const o = await chrome.storage.local.get(key);
+      if (o && o[key] !== undefined) {
+        val = o[key];
+      }
+    } catch {}
   }
+  if (val === undefined) {
+    try {
+      const raw = localStorage.getItem("sync:" + key);
+      if (raw) val = JSON.parse(raw);
+    } catch {
+      val = undefined;
+    }
+  }
+  return val;
 }
 
 async function setSync(key, val) {
+  // 1. Immediately persist synchronously to localStorage
   try {
     localStorage.setItem("sync:" + key, JSON.stringify(val));
   } catch {}
+
+  // 2. Persist to chrome.storage.local (unlimited quota, 0 rate limit)
+  if (globalThis.chrome?.storage?.local) {
+    try {
+      await chrome.storage.local.set({ [key]: val });
+    } catch {}
+  }
+
+  // 3. Persist to chrome.storage.sync (safe, never throws on quota/throttling)
   if (hasChromeSync()) {
-    await chrome.storage.sync.set({ [key]: val });
-    return;
+    try {
+      await chrome.storage.sync.set({ [key]: val });
+    } catch (e) {
+      console.warn("chrome.storage.sync write skipped or throttled:", e);
+    }
   }
 }
 

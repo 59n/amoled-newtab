@@ -489,6 +489,9 @@ function renderChips() {
 }
 
 async function persistShortcuts() {
+  try {
+    localStorage.setItem("sync:shortcuts", JSON.stringify(shortcuts));
+  } catch {}
   await saveWithToast(() => saveShortcuts(shortcuts), toastEl);
 }
 
@@ -934,11 +937,36 @@ async function deleteChip(id) {
 // -------------------------------------------------------------
 // Settings Sync & Live Updating
 // -------------------------------------------------------------
-async function updateAndSaveSettings(changes) {
+let saveSettingsDebounceTimer = null;
+
+async function updateAndSaveSettings(changes, immediate = false) {
   settings = { ...settings, ...changes };
   applySettings(settings, false);
-  await saveWithToast(() => saveSettings(settings), toastEl);
+
+  // Synchronously update localStorage immediately so preinit has it instantly for any new tab
+  try {
+    localStorage.setItem("sync:settings", JSON.stringify(settings));
+  } catch {}
+
+  if (immediate) {
+    clearTimeout(saveSettingsDebounceTimer);
+    saveSettingsDebounceTimer = null;
+    await saveWithToast(() => saveSettings(settings), toastEl);
+  } else {
+    clearTimeout(saveSettingsDebounceTimer);
+    saveSettingsDebounceTimer = setTimeout(async () => {
+      saveSettingsDebounceTimer = null;
+      await saveWithToast(() => saveSettings(settings), toastEl);
+    }, 120);
+  }
 }
+
+window.addEventListener("pagehide", () => {
+  if (saveSettingsDebounceTimer) {
+    clearTimeout(saveSettingsDebounceTimer);
+    saveSettings(settings);
+  }
+});
 
 function applySettings(cfg, isInitial = false) {
   // Appearance: sync both documentElement and body
@@ -1101,7 +1129,7 @@ function syncSettingsForm() {
 function setupSettingsListeners() {
   // Theme
   settingTheme.addEventListener("change", () => {
-    updateAndSaveSettings({ theme: settingTheme.value });
+    updateAndSaveSettings({ theme: settingTheme.value }, true);
   });
 
   // Accent Color Presets
@@ -1111,7 +1139,7 @@ function setupSettingsListeners() {
       customSwatchLabel?.classList.remove("active");
       if (customSwatchLabel) customSwatchLabel.style.boxShadow = "";
       btn.classList.add("active");
-      updateAndSaveSettings({ accentColor: btn.dataset.color });
+      updateAndSaveSettings({ accentColor: btn.dataset.color }, true);
     });
   });
 
@@ -1153,7 +1181,7 @@ function setupSettingsListeners() {
 
   // Glow
   settingGlow.addEventListener("change", () => {
-    updateAndSaveSettings({ glowEffect: settingGlow.checked });
+    updateAndSaveSettings({ glowEffect: settingGlow.checked }, true);
   });
 
   // Cursor Aura & Click Ripples
@@ -1219,7 +1247,7 @@ function setupSettingsListeners() {
 
   // Quote
   settingShowQuote.addEventListener("change", () => {
-    updateAndSaveSettings({ showQuote: settingShowQuote.checked });
+    updateAndSaveSettings({ showQuote: settingShowQuote.checked }, true);
   });
   settingQuoteMode.addEventListener("change", () => {
     const isCustom = settingQuoteMode.value === "custom";
