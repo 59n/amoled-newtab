@@ -166,6 +166,11 @@ html.hide-zoom #zoom-buttons {
   display: none !important;
 }
 
+/* Prevent flashing of quote when hidden in settings */
+html.hide-quote #quote-block {
+  display: none !important;
+}
+
 /* Ambient Cursor Aura */
 .cursor-aura {
   position: fixed;

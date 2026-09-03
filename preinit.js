@@ -7,5 +7,7 @@ try {
     if (s.accentColor) document.documentElement.dataset.accent = s.accentColor;
     if (s.glowEffect) document.documentElement.classList.add("has-glow");
     if (s.scale) document.documentElement.style.setProperty("--page-scale", s.scale);
+    if (s.showQuote === false) document.documentElement.classList.add("hide-quote");
+    if (s.showZoomControls === false) document.documentElement.classList.add("hide-zoom");
   }
 } catch {}

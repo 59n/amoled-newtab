@@ -643,10 +643,17 @@ function openBackgroundMenu(x, y) {
     updateAndSaveSettings({ glowEffect: nextGlow });
     showToast(`Glow ${nextGlow ? "enabled" : "disabled"}`);
   });
-  addMenuItem("New Quote", "❝", () => {
-    loadQuote(true);
-    showToast("Loaded new quote");
+  addMenuItem("Toggle Quote", "❝", () => {
+    const nextQuote = !settings.showQuote;
+    updateAndSaveSettings({ showQuote: nextQuote });
+    showToast(`Quote ${nextQuote ? "shown" : "hidden"}`);
   });
+  if (settings.showQuote) {
+    addMenuItem("New Quote", "↻", () => {
+      loadQuote(true);
+      showToast("Loaded new quote");
+    });
+  }
   if (shortcuts.length < MAX_CHIPS) {
     addMenuDivider();
     addMenuItem("Add Shortcut", "+", () => openEditor(null));
@@ -978,8 +985,9 @@ function applySettings(cfg, isInitial = false) {
   tick();
 
   // Quote
+  document.documentElement.classList.toggle("hide-quote", !cfg.showQuote);
   quoteBlock.classList.toggle("hidden", !cfg.showQuote);
-  if (!isInitial) {
+  if (!isInitial && cfg.showQuote) {
     if (cfg.quoteMode === "custom") {
       renderQuote({
         text: cfg.customQuoteText || "Simplicity is the ultimate sophistication.",
@@ -1856,10 +1864,21 @@ function setupCuriosityFocus() {
 // Immediate synchronous warm render from cache to eliminate CLS / pop-in
 try {
   tick();
-  const rawQuote = localStorage.getItem("local:quoteCache") || localStorage.getItem("quoteCache");
-  if (rawQuote) {
-    const q = JSON.parse(rawQuote);
-    if (q && q.text) renderQuote(q);
+  const rawSettings = localStorage.getItem("sync:settings");
+  let allowQuote = true;
+  if (rawSettings) {
+    const s = JSON.parse(rawSettings);
+    if (s.showQuote === false) {
+      allowQuote = false;
+      document.documentElement.classList.add("hide-quote");
+    }
+  }
+  if (allowQuote) {
+    const rawQuote = localStorage.getItem("local:quoteCache") || localStorage.getItem("quoteCache");
+    if (rawQuote) {
+      const q = JSON.parse(rawQuote);
+      if (q && q.text) renderQuote(q);
+    }
   }
   const rawShortcuts = localStorage.getItem("sync:shortcuts") || localStorage.getItem("shortcuts");
   if (rawShortcuts) {
@@ -1896,7 +1915,9 @@ async function init() {
   setupCursorAura();
   setupClickRipples();
   setupScrollPhysics();
-  loadQuote();
+  if (settings.showQuote) {
+    loadQuote();
+  }
   renderChips();
   setupIdleAndHotkeys();
   setupBookmarksBridge();
