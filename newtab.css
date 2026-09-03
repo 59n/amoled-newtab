@@ -107,6 +107,16 @@ body[data-accent="rose"] {
   --accent-aura: rgba(251, 113, 133, 0.085);
 }
 
+html {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  --page-scale: 1;
+}
+
 html, body {
   min-height: 100vh;
   min-height: 100dvh;
@@ -118,17 +128,20 @@ html, body {
   transition: background-color 200ms ease;
 }
 
-html {
-  --page-scale: 1;
-}
-
 body {
+  width: 100%;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 main {
@@ -143,9 +156,10 @@ main {
   width: 100%;
   max-width: 920px;
   margin: auto;
-  padding: max(1.5rem, env(safe-area-inset-top) + 0.8rem) max(1rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  padding: max(1.2rem, env(safe-area-inset-top) + 0.6rem) max(0.8rem, env(safe-area-inset-right)) max(1.2rem, env(safe-area-inset-bottom)) max(0.8rem, env(safe-area-inset-left));
   position: relative;
   z-index: 2;
+  box-sizing: border-box;
 }
 
 /* Prevent flashing of zoom buttons when hidden in settings */
@@ -217,11 +231,13 @@ body.has-cursor-aura .cursor-aura.active {
 /* ASCII Eyes - Fully Responsive across mobile and desktop */
 .eyes {
   position: relative;
-  box-sizing: content-box;
-  width: 88ch;
-  height: 22em;
-  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
   max-width: 100%;
+  height: 22em;
   min-height: 0;
   max-height: 22em;
   margin: 0 auto;
@@ -230,7 +246,8 @@ body.has-cursor-aura .cursor-aura.active {
   background: transparent;
   color: var(--accent-bright);
   font-family: "IBM Plex Mono", "Cascadia Code", "Courier New", ui-monospace, monospace;
-  font-size: clamp(4px, min(calc((100vw - 32px) / 58), calc((100dvh - 170px) / 26)), 8px);
+  font-size: 8px;
+  font-size: min(8px, calc((100vw - 28px) / 56), calc((100dvh - 160px) / 24));
   line-height: 1;
   letter-spacing: 0;
   font-variant-ligatures: none;
@@ -241,10 +258,12 @@ body.has-cursor-aura .cursor-aura.active {
 }
 
 .eyes__bg,
-.eyes__layer,
-.eyes__tone {
+.eyes__layer {
   position: absolute;
   inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .eyes__bg {
@@ -259,6 +278,7 @@ body.has-cursor-aura .cursor-aura.active {
 .eyes__layer--active { opacity: 1; }
 
 .eyes__tone {
+  position: absolute;
   margin: 0;
   padding: 0;
   pointer-events: none;
@@ -270,6 +290,7 @@ body.has-cursor-aura .cursor-aura.active {
   letter-spacing: 0;
   font-variant-ligatures: none;
   font-kerning: none;
+  text-align: center;
 }
 
 .eyes__tone--dim { color: var(--text-dim); }
@@ -1176,6 +1197,50 @@ input:checked + .slider:before {
 
 /* Mobile & Small Screen Responsiveness */
 @media (max-width: 640px) {
+  main {
+    zoom: 1 !important; /* Mobile phones stay at native 100% full-screen scale */
+    width: 100%;
+    max-width: 100vw;
+    padding: max(0.9rem, env(safe-area-inset-top) + 0.4rem) max(10px, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    gap: 0.35rem;
+  }
+
+  .eyes {
+    height: 18em;
+    max-height: 20em;
+    font-size: min(7.2px, calc((100vw - 20px) / 56), calc((100dvh - 140px) / 22));
+  }
+
+  #top-controls,
+  #zoom-controls {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    z-index: 50;
+  }
+
+  #top-controls button,
+  #zoom-controls button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 17px;
+  }
+
+  .quote {
+    width: min(28rem, 92vw);
+    min-height: 3rem;
+  }
+
+  #chips {
+    gap: 0.35rem;
+  }
+
+  .chip {
+    padding: 0.35rem 0.65rem 0.35rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
   #overlay {
     align-items: flex-end;
     padding: 0;
@@ -1224,13 +1289,5 @@ input:checked + .slider:before {
 
   .setting-row {
     padding: 0.65rem 0;
-  }
-
-  #top-controls button,
-  #zoom-controls button {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    min-height: 34px;
   }
 }
