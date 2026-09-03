@@ -416,9 +416,41 @@ function renderChips() {
       el.classList.add("dragging");
     });
     el.addEventListener("dragend", () => el.classList.remove("dragging"));
-    el.addEventListener("dragover", (e) => e.preventDefault());
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      el.classList.add("chip-drop-hover");
+    });
+    el.addEventListener("dragleave", () => {
+      el.classList.remove("chip-drop-hover");
+    });
     el.addEventListener("drop", async (e) => {
       e.preventDefault();
+      el.classList.remove("chip-drop-hover");
+
+      const bookmarkDataRaw = e.dataTransfer.getData("application/json");
+      if (bookmarkDataRaw) {
+        try {
+          const bm = JSON.parse(bookmarkDataRaw);
+          if (bm && bm.url) {
+            let hostname = "";
+            try {
+              hostname = new URL(bm.url).hostname.replace(/^www\./, "");
+            } catch {
+              hostname = bm.url;
+            }
+            const name = (bm.name || hostname || "Link").trim().slice(0, 18);
+            chip.name = name;
+            chip.url = bm.url;
+            await persistShortcuts();
+            renderChips();
+            showToast(`Pinned "${name}" to shortcut chip!`);
+            return;
+          }
+        } catch (err) {
+          console.warn("Bookmark drop parse error:", err);
+        }
+      }
+
       const fromId = e.dataTransfer.getData("text/plain");
       const toId = chip.id;
       if (!fromId || fromId === toId) return;
@@ -453,6 +485,16 @@ async function persistShortcuts() {
 // -------------------------------------------------------------
 // Shortcut Editor Modal
 // -------------------------------------------------------------
+
+const searchContainer = document.getElementById("search-container");
+const searchForm = document.getElementById("search-form");
+const searchInput = document.getElementById("search-input");
+const settingShowSearch = document.getElementById("setting-show-search");
+const searchSettingsGroup = document.getElementById("search-settings-group");
+const settingSearchEngine = document.getElementById("setting-search-engine");
+const rowCustomSearchUrl = document.getElementById("row-custom-search-url");
+const settingCustomSearchUrl = document.getElementById("setting-custom-search-url");
+const settingSearchNewTab = document.getElementById("setting-search-new-tab");
 const fieldName = document.getElementById("field-name");
 const fieldUrl = document.getElementById("field-url");
 const fieldIcon = document.getElementById("field-icon");
@@ -974,6 +1016,13 @@ function syncSettingsForm() {
   if (settingKeyboardShortcuts) settingKeyboardShortcuts.checked = Boolean(settings.keyboardShortcuts);
   const settingShowBookmarks = document.getElementById("setting-show-bookmarks-btn");
   if (settingShowBookmarks) settingShowBookmarks.checked = Boolean(settings.showBookmarksBtn);
+
+  if (settingShowSearch) settingShowSearch.checked = Boolean(settings.showSearchBar);
+  if (searchSettingsGroup) searchSettingsGroup.classList.toggle("hidden", !settings.showSearchBar);
+  if (settingSearchEngine) settingSearchEngine.value = settings.searchEngine || "google";
+  if (rowCustomSearchUrl) rowCustomSearchUrl.classList.toggle("hidden", settings.searchEngine !== "custom");
+  if (settingCustomSearchUrl) settingCustomSearchUrl.value = settings.customSearchUrl || "";
+  if (settingSearchNewTab) settingSearchNewTab.checked = Boolean(settings.searchInNewTab);
 }
 
 function setupSettingsListeners() {
@@ -1006,6 +1055,11 @@ function setupSettingsListeners() {
     settingClickRipples.addEventListener("change", () => {
       updateAndSaveSettings({ clickRipples: settingClickRipples.checked });
     });
+  }
+
+  // Search Bar
+  if (searchContainer) {
+    searchContainer.classList.toggle("hidden", !cfg.showSearchBar);
   }
 
   // Corner Zoom Controls
@@ -1092,6 +1146,29 @@ function setupSettingsListeners() {
   if (settingShowBookmarks) {
     settingShowBookmarks.addEventListener("change", () => {
       updateAndSaveSettings({ showBookmarksBtn: settingShowBookmarks.checked });
+    });
+  }
+
+  if (settingShowSearch) {
+    settingShowSearch.addEventListener("change", () => {
+      if (searchSettingsGroup) searchSettingsGroup.classList.toggle("hidden", !settingShowSearch.checked);
+      updateAndSaveSettings({ showSearchBar: settingShowSearch.checked });
+    });
+  }
+  if (settingSearchEngine) {
+    settingSearchEngine.addEventListener("change", () => {
+      if (rowCustomSearchUrl) rowCustomSearchUrl.classList.toggle("hidden", settingSearchEngine.value !== "custom");
+      updateAndSaveSettings({ searchEngine: settingSearchEngine.value });
+    });
+  }
+  if (settingCustomSearchUrl) {
+    settingCustomSearchUrl.addEventListener("input", () => {
+      updateAndSaveSettings({ customSearchUrl: settingCustomSearchUrl.value });
+    });
+  }
+  if (settingSearchNewTab) {
+    settingSearchNewTab.addEventListener("change", () => {
+      updateAndSaveSettings({ searchInNewTab: settingSearchNewTab.checked });
     });
   }
 
@@ -1205,6 +1282,14 @@ document.addEventListener("keydown", (e) => {
   }
   const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
   if (!isInput) {
+    // Pressing '/' focuses search input if enabled
+    if (e.key === "/" && settings.showSearchBar && searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+      return;
+    }
+
     // Pressing 'b' toggles Bookmarks Bridge
     if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
@@ -1225,6 +1310,81 @@ document.addEventListener("keydown", (e) => {
 });
 
 
+
+
+// -------------------------------------------------------------
+// Search Bar Engine
+// -------------------------------------------------------------
+const SEARCH_ENGINES = {
+  google: "https://www.google.com/search?q=",
+  duckduckgo: "https://duckduckgo.com/?q=",
+  brave: "https://search.brave.com/search?q=",
+  perplexity: "https://www.perplexity.ai/search?q=",
+  bing: "https://www.bing.com/search?q=",
+};
+
+const SEARCH_BANGS = {
+  "!g": "https://www.google.com/search?q=",
+  "!ddg": "https://duckduckgo.com/?q=",
+  "!b": "https://search.brave.com/search?q=",
+  "!p": "https://www.perplexity.ai/search?q=",
+  "!gh": "https://github.com/search?q=",
+  "!yt": "https://www.youtube.com/results?search_query=",
+  "!r": "https://www.reddit.com/search/?q=",
+  "!w": "https://en.wikipedia.org/wiki/Special:Search?search=",
+  "!m": "https://www.google.com/maps/search/",
+};
+
+function performSearch(rawQuery) {
+  const query = (rawQuery || "").trim();
+  if (!query) return;
+
+  const urlPattern = /^(https?:\/\/|[a-z0-9-]+\.[a-z]{2,}(\/.*)?$|localhost(:\d+)?(\/.*)?$|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?(\/.*)?$)/i;
+  if (urlPattern.test(query)) {
+    let targetUrl = query;
+    if (!/^https?:\/\//i.test(targetUrl)) {
+      targetUrl = "https://" + targetUrl;
+    }
+    navigateSearch(targetUrl);
+    return;
+  }
+
+  const parts = query.split(/\s+/);
+  const firstWord = parts[0].toLowerCase();
+  if (SEARCH_BANGS[firstWord]) {
+    const remaining = parts.slice(1).join(" ");
+    const targetUrl = SEARCH_BANGS[firstWord] + encodeURIComponent(remaining);
+    navigateSearch(targetUrl);
+    return;
+  }
+
+  let targetUrl = "";
+  if (settings.searchEngine === "custom" && settings.customSearchUrl) {
+    targetUrl = settings.customSearchUrl.replace("%s", encodeURIComponent(query));
+  } else {
+    const base = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
+    targetUrl = base + encodeURIComponent(query);
+  }
+
+  navigateSearch(targetUrl);
+}
+
+function navigateSearch(url) {
+  if (settings.searchInNewTab) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  } else {
+    window.location.href = url;
+  }
+}
+
+function setupSearchBar() {
+  if (searchForm) {
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      performSearch(searchInput?.value);
+    });
+  }
+}
 
 // -------------------------------------------------------------
 // Bookmarks Bar Bridge
@@ -1430,17 +1590,51 @@ function renderBookmarksList(hasChromeApi = true) {
     const actions = document.createElement("div");
     actions.className = "bookmark-actions";
 
+    item.draggable = true;
+    item.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("application/json", JSON.stringify({
+        name: bm.title,
+        url: bm.url,
+      }));
+      e.dataTransfer.effectAllowed = "copy";
+      item.classList.add("is-dragging");
+    });
+    item.addEventListener("dragend", () => {
+      item.classList.remove("is-dragging");
+    });
+
     const pinBtn = document.createElement("button");
     pinBtn.type = "button";
     pinBtn.className = "btn-pin-chip";
-    pinBtn.textContent = "+ Pin to Chips";
-    pinBtn.title = "Add to shortcut chips";
+    pinBtn.textContent = "+ Pin";
+    pinBtn.title = "Add to shortcut chips (or drag onto any chip)";
     pinBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       pinBookmarkToChips(bm);
     });
 
-    actions.appendChild(pinBtn);
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn-delete-bookmark";
+    delBtn.textContent = "×";
+    delBtn.title = "Delete bookmark";
+    delBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (confirm(`Delete bookmark "${bm.title}"?`)) {
+        if (typeof chrome !== "undefined" && chrome?.bookmarks?.remove) {
+          try {
+            await new Promise((res) => chrome.bookmarks.remove(bm.id, res));
+          } catch (err) {
+            console.warn("Remove bookmark error:", err);
+          }
+        }
+        allBookmarks = allBookmarks.filter((b) => b.id !== bm.id);
+        item.remove();
+        showToast(`Deleted "${bm.title}"`);
+      }
+    });
+
+    actions.append(pinBtn, delBtn);
     item.append(left, actions);
 
     const openBookmark = () => {
@@ -1554,6 +1748,12 @@ function toggleBookmarksDrawer() {
 }
 
 function setupBookmarksBridge() {
+  const btnNewBookmark = document.getElementById("btn-new-bookmark");
+  const bookmarksAddForm = document.getElementById("bookmarks-add-form");
+  const btnCancelAddBm = document.getElementById("btn-cancel-add-bm");
+  const bmInputTitle = document.getElementById("bm-input-title");
+  const bmInputUrl = document.getElementById("bm-input-url");
+
   if (bookmarksDrawer) {
     bookmarksDrawer.addEventListener("wheel", (e) => {
       e.stopPropagation();
@@ -1573,6 +1773,49 @@ function setupBookmarksBridge() {
   }
   if (btnSyncBookmarksChips) {
     btnSyncBookmarksChips.addEventListener("click", syncBookmarksToChips);
+  }
+
+  if (btnNewBookmark && bookmarksAddForm) {
+    btnNewBookmark.addEventListener("click", () => {
+      bookmarksAddForm.classList.toggle("hidden");
+      if (!bookmarksAddForm.classList.contains("hidden")) {
+        bmInputTitle.focus();
+      }
+    });
+  }
+  if (btnCancelAddBm && bookmarksAddForm) {
+    btnCancelAddBm.addEventListener("click", () => {
+      bookmarksAddForm.classList.add("hidden");
+    });
+  }
+  if (bookmarksAddForm) {
+    bookmarksAddForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = (bmInputTitle.value || "").trim();
+      let url = (bmInputUrl.value || "").trim();
+      if (!title || !url) return;
+      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
+      if (typeof chrome !== "undefined" && chrome?.bookmarks?.create) {
+        try {
+          await new Promise((res) => chrome.bookmarks.create({ title, url }, res));
+        } catch (err) {
+          console.warn("Create bookmark error:", err);
+        }
+      } else {
+        allBookmarks.unshift({
+          id: `bm-${Date.now()}`,
+          title,
+          url,
+          folder: activeBookmarkFolder === "All" ? "Bookmarks Bar" : activeBookmarkFolder,
+        });
+      }
+
+      showToast(`Added "${title}" to bookmarks!`);
+      bookmarksAddForm.reset();
+      bookmarksAddForm.classList.add("hidden");
+      await loadBookmarks();
+    });
   }
 }
 
@@ -1626,6 +1869,7 @@ async function init() {
   renderChips();
   setupIdleAndHotkeys();
   setupBookmarksBridge();
+  setupSearchBar();
   setupCuriosityFocus();
 
   tick();

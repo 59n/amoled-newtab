@@ -45,6 +45,12 @@ export const DEFAULT_SETTINGS = {
   iconStyle: "favicon", // "favicon", "letter", "none"
   keyboardShortcuts: true,
   showBookmarksBtn: true,
+
+  // Search Bar (Optional)
+  showSearchBar: false,
+  searchEngine: "google", // "google", "duckduckgo", "brave", "perplexity", "bing", "custom"
+  customSearchUrl: "https://www.google.com/search?q=%s",
+  searchInNewTab: false,
 };
 
 export function isEmptyChip(chip) {

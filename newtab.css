@@ -1759,3 +1759,162 @@ body.drawer-open {
   color: var(--accent-bright);
   font-family: monospace;
 }
+
+/* -------------------------------------------------------------
+   Minimalist Search Bar
+   ------------------------------------------------------------- */
+.search-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 12px auto 8px auto;
+  z-index: 20;
+}
+
+.search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: min(440px, 88vw);
+  background: #080808;
+  border: 1px solid #1e1e1e;
+  border-radius: 24px;
+  padding: 2px 14px 2px 38px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.search-form:hover {
+  border-color: #2e2e2e;
+  background: #0c0c0c;
+}
+
+.search-form:focus-within {
+  background: #000000;
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 1px var(--accent-bright), 0 0 16px var(--accent-aura);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color 180ms ease;
+}
+
+.search-form:focus-within .search-icon {
+  color: var(--accent-bright);
+}
+
+.search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.88rem;
+  padding: 8px 0;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #555555;
+}
+
+.search-kbd-hint {
+  font-size: 0.72rem;
+  color: #444444;
+  border: 1px solid #222222;
+  border-radius: 4px;
+  padding: 1px 6px;
+  user-select: none;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.search-form:focus-within .search-kbd-hint {
+  opacity: 0;
+}
+
+/* -------------------------------------------------------------
+   Bookmarks Bridge Power Tools (Drag & Drop, Add, Delete)
+   ------------------------------------------------------------- */
+.chip.chip-drop-hover {
+  border-color: var(--accent-bright) !important;
+  box-shadow: 0 0 14px var(--accent-aura) !important;
+  transform: scale(1.05) !important;
+  background: #111111 !important;
+}
+
+.bookmark-item.is-dragging {
+  opacity: 0.35;
+  background: #181818;
+}
+
+.btn-delete-bookmark {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #666666;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 120ms;
+  margin-left: 4px;
+}
+
+.btn-delete-bookmark:hover {
+  background: #2a1111;
+  color: #f87171;
+  border-color: #ef4444;
+}
+
+.bookmarks-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #0a0a0a;
+  border: 1px solid #222222;
+  border-radius: 6px;
+  animation: modal-fade-in 140ms ease;
+}
+
+.bm-form-row {
+  display: flex;
+  width: 100%;
+}
+
+.bm-form-input {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #262626;
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  outline: none;
+}
+
+.bm-form-input:focus {
+  border-color: var(--accent-bright);
+}
+
+.bm-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-drawer-action.primary {
+  background: var(--accent-dim);
+  border-color: var(--accent-bright);
+  color: var(--accent-bright);
+}
+
+.btn-drawer-action.primary:hover {
+  background: var(--accent-bright);
+  color: #000000;
+}

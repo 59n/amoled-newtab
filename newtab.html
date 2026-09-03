@@ -49,6 +49,19 @@
       </div>
       <cite id="author"></cite>
     </blockquote>
+
+    <!-- Optional Minimalist Search Bar -->
+    <div id="search-container" class="search-container hidden">
+      <form id="search-form" class="search-form" action="#" role="search">
+        <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="search-input" class="search-input" placeholder="Search or enter URL..." autocomplete="off" spellcheck="false">
+        <span class="search-kbd-hint">/</span>
+      </form>
+    </div>
+
     <nav id="chips" aria-label="Shortcuts"></nav>
   </main>
 
@@ -169,6 +182,54 @@
               <input type="checkbox" id="setting-show-zoom">
               <span class="slider"></span>
             </label>
+          </div>
+
+          <div class="settings-subhead">Search Bar (Optional)</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-show-search">Show Search Bar</label>
+              <span class="setting-desc">Minimalist search bar on new tab (Hotkey: /)</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-show-search">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div id="search-settings-group" class="hidden">
+            <div class="setting-row">
+              <div class="setting-info">
+                <label for="setting-search-engine">Search Provider</label>
+                <span class="setting-desc">Choose search engine</span>
+              </div>
+              <select id="setting-search-engine">
+                <option value="google">Google</option>
+                <option value="duckduckgo">DuckDuckGo</option>
+                <option value="brave">Brave</option>
+                <option value="perplexity">Perplexity</option>
+                <option value="bing">Bing</option>
+                <option value="custom">Custom Template (%s)</option>
+              </select>
+            </div>
+
+            <div class="setting-row hidden" id="row-custom-search-url">
+              <div class="setting-info">
+                <label for="setting-custom-search-url">Custom URL Template</label>
+                <span class="setting-desc">Use %s where the search query goes</span>
+              </div>
+              <input type="text" id="setting-custom-search-url" class="setting-text-input" placeholder="https://kagi.com/search?q=%s">
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <label for="setting-search-new-tab">Open Search in New Tab</label>
+                <span class="setting-desc">Launch search results in a new tab</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="setting-search-new-tab">
+                <span class="slider"></span>
+              </label>
+            </div>
           </div>
         </section>
 
@@ -451,12 +512,28 @@
           <span>Bookmarks Bridge</span>
         </div>
         <div class="bookmarks-header-actions">
+          <button type="button" id="btn-new-bookmark" class="btn-drawer-action" title="Add a new bookmark to active folder">
+            + Add
+          </button>
           <button type="button" id="btn-sync-bookmarks-chips" class="btn-drawer-action" title="Populate first 8 bookmarks as shortcut chips">
             ⚡ Sync to Chips
           </button>
           <button type="button" id="btn-close-bookmarks" class="drawer-close-btn" aria-label="Close bookmarks">&times;</button>
         </div>
       </div>
+
+      <form id="bookmarks-add-form" class="bookmarks-add-form hidden">
+        <div class="bm-form-row">
+          <input type="text" id="bm-input-title" class="bm-form-input" placeholder="Page Title (e.g. Backtrader)" required autocomplete="off">
+        </div>
+        <div class="bm-form-row">
+          <input type="text" id="bm-input-url" class="bm-form-input" placeholder="URL (e.g. backtrader.com)" required autocomplete="off">
+        </div>
+        <div class="bm-form-actions">
+          <button type="submit" class="btn-drawer-action primary">Save</button>
+          <button type="button" id="btn-cancel-add-bm" class="btn-drawer-action">Cancel</button>
+        </div>
+      </form>
 
       <div class="bookmarks-search-box">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
