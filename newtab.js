@@ -42,11 +42,15 @@ const scaleDown = document.getElementById("scale-down");
 const scaleUp = document.getElementById("scale-up");
 const scaleRange = document.getElementById("scale-range");
 const scaleLabel = document.getElementById("scale-label");
+const cursorAuraEl = document.getElementById("cursor-aura");
+const mainEl = document.querySelector("main");
 
 // Settings controls
 const settingTheme = document.getElementById("setting-theme");
 const accentSwatches = document.querySelectorAll("#accent-swatches .color-swatch-btn");
 const settingGlow = document.getElementById("setting-glow");
+const settingCursorAura = document.getElementById("setting-cursor-aura");
+const settingClickRipples = document.getElementById("setting-click-ripples");
 const settingShowZoom = document.getElementById("setting-show-zoom");
 const settingShowEyes = document.getElementById("setting-show-eyes");
 const settingEyeVariant = document.getElementById("setting-eye-variant");
@@ -77,6 +81,8 @@ let eyesDisplay = null;
 let toastTimeout = null;
 let currentQuote = { text: "", author: "" };
 const MAX_CHIPS = 8;
+
+const EYE_VARIANTS = ["classic", "sleepy", "wide", "squint", "glare", "close", "far"];
 
 function showToast(msg, duration = 2200) {
   if (!toastEl) return;
@@ -313,7 +319,8 @@ function renderChips() {
     el.draggable = true;
     el.addEventListener("contextmenu", (e) => {
       e.preventDefault();
-      openMenu(e.clientX, e.clientY, chip);
+      e.stopPropagation();
+      openChipMenu(e.clientX, e.clientY, chip);
     });
     el.addEventListener("dragstart", (e) => {
       e.dataTransfer.setData("text/plain", chip.id);
@@ -354,7 +361,7 @@ async function persistShortcuts() {
 }
 
 // -------------------------------------------------------------
-// Shortcut Editor Modal & Context Menu
+// Shortcut Editor Modal
 // -------------------------------------------------------------
 const fieldName = document.getElementById("field-name");
 const fieldUrl = document.getElementById("field-url");
@@ -413,43 +420,173 @@ modal.addEventListener("click", (e) => {
   if (e.target === modal) closeModal();
 });
 
-function openMenu(x, y, chip) {
+// -------------------------------------------------------------
+// Interactive Right-Click Menus
+// -------------------------------------------------------------
+function positionMenu(x, y) {
+  menu.classList.remove("hidden");
+  const pad = 12;
+  const menuWidth = menu.offsetWidth || 170;
+  const menuHeight = menu.offsetHeight || 160;
+  const posX = x + menuWidth > window.innerWidth - pad ? Math.max(pad, window.innerWidth - menuWidth - pad) : x;
+  const posY = y + menuHeight > window.innerHeight - pad ? Math.max(pad, window.innerHeight - menuHeight - pad) : y;
+  menu.style.left = `${posX}px`;
+  menu.style.top = `${posY}px`;
+}
+
+function addMenuItem(label, iconText, fn) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.setAttribute("role", "menuitem");
+  const icon = document.createElement("span");
+  icon.className = "menu-icon";
+  icon.textContent = iconText;
+  b.append(icon);
+  b.append(label);
+  b.addEventListener("click", () => {
+    closeMenu();
+    fn();
+  });
+  menu.append(b);
+}
+
+function addMenuDivider() {
+  const d = document.createElement("div");
+  d.className = "menu-divider";
+  menu.append(d);
+}
+
+function openChipMenu(x, y, chip) {
   menu.replaceChildren();
-  const item = (label, fn) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.setAttribute("role", "menuitem");
-    b.textContent = label;
-    b.addEventListener("click", () => {
-      closeMenu();
-      fn();
-    });
-    menu.append(b);
-  };
   if (!isEmptyChip(chip)) {
-    item("Edit", () => openEditor(chip.id));
-    item("Clear", async () => {
+    addMenuItem("Edit Shortcut", "✎", () => openEditor(chip.id));
+    addMenuItem("Clear Slot", "↺", async () => {
       shortcuts = shortcuts.map((c) => (c.id === chip.id ? { ...c, name: "", url: "" } : c));
       await persistShortcuts();
       renderChips();
       renderOverlayList();
     });
   }
-  item("Delete", async () => {
+  addMenuItem("Delete Slot", "×", async () => {
     shortcuts = shortcuts.filter((c) => c.id !== chip.id);
     await persistShortcuts();
     renderChips();
     renderOverlayList();
   });
-  menu.classList.remove("hidden");
-  menu.style.left = `${x}px`;
-  menu.style.top = `${y}px`;
+  addMenuDivider();
+  addMenuItem("Settings", "⚙", openOverlay);
+  positionMenu(x, y);
+}
+
+function openBackgroundMenu(x, y) {
+  menu.replaceChildren();
+  addMenuItem("Settings", "⚙", openOverlay);
+  addMenuItem("Cycle Eyes", "👁", () => {
+    const currIdx = EYE_VARIANTS.indexOf(settings.eyeVariant);
+    const nextIdx = (currIdx + 1) % EYE_VARIANTS.length;
+    const nextVariant = EYE_VARIANTS[nextIdx];
+    updateAndSaveSettings({ eyeVariant: nextVariant });
+    showToast(`Eye style: ${nextVariant}`);
+  });
+  addMenuItem("Toggle Glow", "✦", () => {
+    const nextGlow = !settings.glowEffect;
+    updateAndSaveSettings({ glowEffect: nextGlow });
+    showToast(`Glow ${nextGlow ? "enabled" : "disabled"}`);
+  });
+  addMenuItem("New Quote", "❝", () => {
+    loadQuote();
+    showToast("Loaded new quote");
+  });
+  if (shortcuts.length < MAX_CHIPS) {
+    addMenuDivider();
+    addMenuItem("Add Shortcut", "+", () => openEditor(null));
+  }
+  positionMenu(x, y);
 }
 
 function closeMenu() {
   menu.classList.add("hidden");
 }
-document.addEventListener("click", () => closeMenu());
+
+document.addEventListener("click", (e) => {
+  if (!menu.contains(e.target)) closeMenu();
+});
+
+// Background right-click handler
+window.addEventListener("contextmenu", (e) => {
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target?.tagName)) return;
+  if (e.target.closest(".chip") || e.target.closest("#modal") || e.target.closest("#overlay")) return;
+  e.preventDefault();
+  openBackgroundMenu(e.clientX, e.clientY);
+});
+
+// -------------------------------------------------------------
+// Mouse Cursor Aura & Click Shockwaves
+// -------------------------------------------------------------
+function setupCursorAura() {
+  if (!cursorAuraEl) return;
+  let auraRaf = null;
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+
+  window.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (!cursorAuraEl.classList.contains("active")) {
+      cursorAuraEl.classList.add("active");
+    }
+    if (!auraRaf) {
+      auraRaf = requestAnimationFrame(() => {
+        cursorAuraEl.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        auraRaf = null;
+      });
+    }
+  }, { passive: true });
+
+  document.addEventListener("mouseleave", () => {
+    cursorAuraEl.classList.remove("active");
+  });
+}
+
+function setupClickRipples() {
+  window.addEventListener("pointerdown", (e) => {
+    if (!settings.clickRipples) return;
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target?.tagName)) return;
+    if (e.target.closest("#overlay") || e.target.closest("#modal")) return;
+
+    const ripple = document.createElement("div");
+    const isAccent = e.button === 2;
+    ripple.className = "click-ripple " + (isAccent ? "click-ripple--accent" : "click-ripple--standard");
+    ripple.style.left = `${e.clientX}px`;
+    ripple.style.top = `${e.clientY}px`;
+    document.body.append(ripple);
+
+    ripple.addEventListener("animationend", () => {
+      ripple.remove();
+    }, { once: true });
+  }, { passive: true });
+}
+
+// -------------------------------------------------------------
+// Kinetic Scroll Animation
+// -------------------------------------------------------------
+function setupScrollPhysics() {
+  if (!mainEl) return;
+  let scrollOffset = 0;
+  let resetTimer = null;
+
+  window.addEventListener("wheel", (e) => {
+    if (!overlay.classList.contains("hidden") || !modal.classList.contains("hidden")) return;
+    scrollOffset = Math.max(-24, Math.min(24, scrollOffset - e.deltaY * 0.1));
+    mainEl.style.transform = `translateY(${scrollOffset}px)`;
+
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(() => {
+      scrollOffset = 0;
+      mainEl.style.transform = "";
+    }, 120);
+  }, { passive: true });
+}
 
 // -------------------------------------------------------------
 // Settings Tabs & Overlay
@@ -561,6 +698,7 @@ function applySettings(cfg, isInitial = false) {
   document.body.dataset.accent = cfg.accentColor;
   document.documentElement.classList.toggle("has-glow", Boolean(cfg.glowEffect));
   document.body.classList.toggle("has-glow", Boolean(cfg.glowEffect));
+  document.body.classList.toggle("has-cursor-aura", Boolean(cfg.cursorAura));
 
   // Instant toggle for zoom buttons (gear icon ALWAYS stays)
   document.documentElement.classList.toggle("hide-zoom", !cfg.showZoomControls);
@@ -611,6 +749,8 @@ function syncSettingsForm() {
     btn.classList.toggle("active", btn.dataset.color === settings.accentColor);
   });
   settingGlow.checked = Boolean(settings.glowEffect);
+  if (settingCursorAura) settingCursorAura.checked = Boolean(settings.cursorAura);
+  if (settingClickRipples) settingClickRipples.checked = Boolean(settings.clickRipples);
   settingShowZoom.checked = Boolean(settings.showZoomControls);
 
   settingShowEyes.checked = Boolean(settings.showEyes);
@@ -656,6 +796,18 @@ function setupSettingsListeners() {
   settingGlow.addEventListener("change", () => {
     updateAndSaveSettings({ glowEffect: settingGlow.checked });
   });
+
+  // Cursor Aura & Click Ripples
+  if (settingCursorAura) {
+    settingCursorAura.addEventListener("change", () => {
+      updateAndSaveSettings({ cursorAura: settingCursorAura.checked });
+    });
+  }
+  if (settingClickRipples) {
+    settingClickRipples.addEventListener("change", () => {
+      updateAndSaveSettings({ clickRipples: settingClickRipples.checked });
+    });
+  }
 
   // Corner Zoom Controls
   settingShowZoom.addEventListener("change", () => {
@@ -870,6 +1022,9 @@ async function init() {
   setupSettingsTabs();
   setupSettingsListeners();
   setupQuoteCopy();
+  setupCursorAura();
+  setupClickRipples();
+  setupScrollPhysics();
   loadQuote();
   renderChips();
 

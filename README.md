@@ -1,20 +1,29 @@
-# AMOLED New Tab
+# AMOLED New Tab Page
 
-A clean, true-black (`#000000`) new-tab extension for Chromium browsers featuring an interactive pair of ASCII eyes that track your cursor, a live clock, curated inspirational quotes, customizable shortcut chips, and an advanced tabbed customization suite.
+An ultra-clean, battery-friendly new tab page for Chromium browsers featuring animated ASCII eyes, live clock, inspirational quotes, configurable shortcuts, custom themes, and rich customization designed specifically for OLED / AMOLED displays.
 
-Zero dependencies. Zero tracking. Pure vanilla web technologies.
+![Screenshot](docs/screenshot.png)
 
-![AMOLED New Tab Preview](assets/preview.png)
+## Highlights & Features
 
-## Features
-
-- **Interactive ASCII Eyes**: 
-  - Dynamic gaze tracking: Pupil position follows the cursor across a precomputed 9×7 gaze grid (can be toggled on/off).
-  - Multiple eye styles: Choose from **Classic**, **Sleepy**, **Wide**, **Squint**, **Glare**, **Close-set**, **Wide-set**, or **Random per tab**.
-  - Density ramps: Switch between **Classic** (`· ~ o x + = * % $ @`), **Minimal** (`· : * # @`), **Blocks** (`░ ▒ ▓ █`), **Binary** (`0 1`), or **Matrix Katakana** (`· ﾊ ﾐ ﾋ ｳ ｼ ﾅ 0 1`).
+- **Interactive ASCII Eyes**:
+  - 7 unique eye style expressions: **Classic**, **Sleepy**, **Wide**, **Squint**, **Glare**, **Close-set**, **Wide-set**, plus a **Random per tab** mode.
+  - 5 ASCII density ramps: **Classic** (`· ~ o x + = * % $ @`), **Minimal** (`· : * # @`), **Blocks** (`░ ▒ ▓ █`), **Binary** (`0 1`), and **Matrix** (`· ﾊ ﾐ ﾋ ｳ ｼ ﾅ 0 1`).
+  - Gaze tracking: Pupils track cursor movement smoothly in real-time (optional toggle).
   - Natural animations: Configurable blink rates (**Normal**, **Calm**, **Frequent**, or **Off**), natural idle wandering drift, and double-blink on click.
   - Reactive gaze: Averts gaze and squeezes shut on right-click; looks up/down on scroll-wheel events.
   - Dual-layer rendering to eliminate flicker.
+- **Ambient Mouse Aura & Click Shockwaves**:
+  - **Mouse Cursor Aura**: A soft, ethereal radial phosphor glow tracking the mouse, dynamically illuminated in your current theme's accent color.
+  - **Geometric Click Ripples**: Smooth animated shockwave rings on click that expand and dissolve into the deep black background.
+  - **Accent Sonar Pulse**: Right-clicking emits a dual-ring glowing accent shockwave.
+- **Animated Right-Click Context Menu**:
+  - Glassmorphic translucent dark menu with smooth micro-bloom spring animation.
+  - Quick actions on empty space: Open Settings, Cycle Eye Expressions, Toggle CRT Glow, Refresh Quote, Add Shortcut.
+  - Contextual shortcut actions: Edit, Clear Slot, Delete.
+- **Kinetic Scroll Dynamics & Custom Scrollbars**:
+  - Elastic kinetic spring displacement on mouse wheel scroll with smooth recovery.
+  - Custom slim AMOLED dark scrollbars across all modals and settings.
 - **Themes & Accent Colors**:
   - Background themes: **Pure AMOLED Black** (`#000000`), **Midnight Charcoal**, **Abyss Navy**, or **Matrix Dark**.
   - Vibrant accent color tints: **Warm White**, **Cyber Amber**, **Terminal Green**, **Ice Cyan**, **Synthwave Purple**, and **Sunset Rose**.
@@ -26,7 +35,7 @@ Zero dependencies. Zero tracking. Pure vanilla web technologies.
 - **Inspirational Quotes & Custom Mottos**:
   - Fetches random quotes from [Quotable](https://api.quotable.io) or [DummyJSON](https://dummyjson.com) with offline fallbacks (`fallbacks.json`).
   - Custom Motto mode: Set your own personal motto and author text.
-  - Discreet copy button with visual "Copied" feedback.
+  - Discreet inline copy button right behind the quote with visual "Copied" feedback.
 - **Customizable Shortcuts**:
   - Up to 8 launch chips with automatic favicon resolution, letter badge mode, or text-only mode.
   - Drag-and-drop reordering.
@@ -37,7 +46,7 @@ Zero dependencies. Zero tracking. Pure vanilla web technologies.
   - Global scaling from 70% to 200% in 10% steps via settings slider or corner `−`/`+` buttons (with toggle to hide corner buttons).
   - Preferences persisted across sessions via `chrome.storage.sync`.
 - **Comprehensive Tabbed Settings Panel**:
-  - Accessible via the gear icon (`⚙`) in the top right.
+  - Accessible via the gear icon (`⚙`) in the top right, pressing <kbd>s</kbd> or <kbd>,</kbd>, or double-clicking the background.
   - Organized tabs: **Appearance**, **Eyes**, **Clock & Quote**, **Shortcuts**, and **Data**.
   - Backup & Restore: Export configuration to JSON, import backups, and reset to defaults.
   - Keyboard accessible (`Escape` closes all modals, menus, and overlays).
@@ -58,19 +67,23 @@ Zero dependencies. Zero tracking. Pure vanilla web technologies.
 | --- | --- | --- |
 | **Eyes** | Mouse move | Pupils follow cursor (when enabled) |
 | | Idle | Natural wandering & periodic blink |
-| | Scroll wheel | Looks up or down then blinks |
-| | Left-click | Double blink |
-| | Right-click | Averts gaze and closes eyes |
-| **Quote** | Hover near quote | Reveals discreet copy icon |
+| | Scroll wheel | Kinetic scroll reaction, looks up/down then blinks |
+| | Left-click | Double blink & geometric click ripple |
+| | Right-click | Averts gaze, sonar shockwave, opens sleek context menu |
+| **Cursor Aura** | Mouse move | Soft accent-colored phosphor aura illuminates cursor |
+| **Quote** | Hover near quote | Reveals discreet copy icon right behind quote |
 | | Click copy icon | Copies `<quote> — <author>` to clipboard |
 | **Shortcuts** | Left-click | Open link (current tab or new tab based on settings) |
 | | Middle-click / `Ctrl`/`Cmd`+Click | Open link in new tab |
 | | Drag & drop | Reorder chips |
-| | Right-click | Open context menu (Edit, Clear, Delete) |
+| | Right-click | Open animated context menu (Edit, Clear, Delete) |
 | | `+ add` button | Add a new shortcut |
+| **Background** | Right-click | Quick actions menu (Settings, Cycle Eyes, Toggle Glow, New Quote) |
+| | Double-click | Quick open Settings modal |
 | **Zoom** | `−` / `+` buttons | Adjust scale by 10% |
 | | Settings slider | Fine-tune zoom between 70% and 200% |
 | **Settings** | `⚙` (top-right) | Open tabbed settings modal |
+| | Hotkey <kbd>s</kbd> or <kbd>,</kbd> | Toggle settings modal |
 | **General** | `Escape` key | Close any open modal, menu, or overlay |
 
 > For more details on usage, see [docs/usage.md](docs/usage.md).
@@ -81,9 +94,10 @@ Built strictly with vanilla Manifest V3 standards—no bundlers, no build steps,
 
 ```
 ├── manifest.json       # Chrome Manifest V3 configuration & permissions
+├── preinit.js          # Synchronous CSP-compliant pre-paint script
 ├── newtab.html         # Clean DOM shell (eyes, clock, quote, shortcuts, modals)
-├── newtab.css          # AMOLED styling, themes, glow effects, tabbed settings
-├── newtab.js           # Clock, quote logic, shortcuts, settings synchronization
+├── newtab.css          # AMOLED styling, aura, ripples, glass menu, tabbed settings
+├── newtab.js           # Clock, quote, shortcuts, aura, ripples, scroll physics, sync
 ├── eyes-display.js     # Multi-variant & density-ramp ASCII eye animation engine
 ├── storage.js          # Settings & shortcuts persistence with chrome.storage.sync
 ├── ascii.js            # Text utilities & legacy ASCII functions
@@ -109,15 +123,6 @@ or directly:
 node --test tests/*.test.js
 ```
 
-## Privacy & Security
-
-- **Zero telemetry & zero analytics**: No data is collected or transmitted to first-party servers.
-- **Minimal permissions**: Requests only `storage` permission and host permissions for quote fetching APIs.
-- **Local persistence**: Shortcuts, custom zoom levels, and cached quotes stay on your machine (or sync via your personal Chrome profile).
-- **Public endpoints only**: Queries public, non-authenticated quote APIs (`api.quotable.io`, `dummyjson.com`) and Google's public favicon service.
-
-> Read the full privacy declaration at [docs/privacy.md](docs/privacy.md).
-
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License. Feel free to customize and enjoy your AMOLED new tab experience!

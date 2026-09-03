@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="newtab.css">
 </head>
 <body>
+  <div id="cursor-aura" class="cursor-aura" aria-hidden="true"></div>
+
   <div id="top-controls">
     <div id="zoom-buttons" class="hidden">
       <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
@@ -108,6 +110,28 @@
             </div>
             <label class="switch">
               <input type="checkbox" id="setting-glow">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-cursor-aura">Mouse Cursor Aura</label>
+              <span class="setting-desc">Soft ambient phosphor glow tracking cursor</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-cursor-aura">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <label for="setting-click-ripples">Click Ripple Effects</label>
+              <span class="setting-desc">Expanding geometric shockwaves on click</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-click-ripples">
               <span class="slider"></span>
             </label>
           </div>

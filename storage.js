@@ -13,6 +13,8 @@ export const DEFAULT_SETTINGS = {
   theme: "amoled", // "amoled", "charcoal", "navy", "matrix"
   accentColor: "white", // "white", "amber", "green", "cyan", "purple", "rose"
   glowEffect: false,
+  cursorAura: true,
+  clickRipples: true,
   scale: 1,
   showZoomControls: true,
 
