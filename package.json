@@ -5,7 +5,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "build:safari": "./scripts/build-safari.sh"
   },
   "keywords": [
     "chrome-extension",

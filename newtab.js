@@ -17,6 +17,15 @@ import {
 import { loadFallbacks, truncateQuote } from "./ascii.js";
 import { EyesDisplay } from "./eyes-display.js";
 
+// Safari Web Extensions have no bookmarks API, so the Bookmarks Bridge is hidden there
+const IS_SAFARI_EXTENSION = (() => {
+  try {
+    return typeof chrome !== "undefined" && chrome.runtime.getURL("").startsWith("safari-web-extension://");
+  } catch {
+    return false;
+  }
+})();
+
 const clock = document.getElementById("clock");
 const dateEl = document.getElementById("date");
 const clockContainer = document.getElementById("clock-container");
@@ -1017,7 +1026,7 @@ function applySettings(cfg, isInitial = false) {
 
   const btnBookmarksEl = document.getElementById("btn-bookmarks");
   if (btnBookmarksEl) {
-    btnBookmarksEl.classList.toggle("hidden", !cfg.showBookmarksBtn);
+    btnBookmarksEl.classList.toggle("hidden", !cfg.showBookmarksBtn || IS_SAFARI_EXTENSION);
   }
 
   // Instant toggle for zoom buttons (gear icon ALWAYS stays)
@@ -1285,7 +1294,9 @@ function setupSettingsListeners() {
     });
   }
   const settingShowBookmarks = document.getElementById("setting-show-bookmarks-btn");
-  if (settingShowBookmarks) {
+  if (settingShowBookmarks && IS_SAFARI_EXTENSION) {
+    settingShowBookmarks.closest(".setting-row")?.classList.add("hidden");
+  } else if (settingShowBookmarks) {
     settingShowBookmarks.addEventListener("change", () => {
       updateAndSaveSettings({ showBookmarksBtn: settingShowBookmarks.checked });
     });
@@ -1433,7 +1444,7 @@ document.addEventListener("keydown", (e) => {
     }
 
     // Pressing 'b' toggles Bookmarks Bridge
-    if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey) {
+    if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey && !IS_SAFARI_EXTENSION) {
       e.preventDefault();
       toggleBookmarksDrawer();
       return;

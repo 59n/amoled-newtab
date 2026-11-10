@@ -35,6 +35,13 @@ A black-background new tab page for Chromium browsers, built for OLED/AMOLED scr
 3. Click **Load unpacked** and select the repository folder (the one with `manifest.json`).
 4. Open a new tab.
 
+### Safari (macOS)
+Requires Xcode. Safari has no bookmarks API, so the Bookmarks Bridge is hidden there; everything else is identical.
+1. Run `npm run build:safari`. This writes `dist/safari-extension/`, generates the Xcode wrapper in `safari/` on first run, and builds `dist/xcode-build/Build/Products/Release/AMOLED New Tab.app`.
+2. The script signs with your Apple Development certificate if one is installed (sign into Xcode with an Apple ID to get one), so the extension survives Safari restarts. Without one, enable **Develop → Allow Unsigned Extensions** in Safari after every launch.
+3. Open the built app once, then enable **AMOLED New Tab** in Safari → Settings → Extensions.
+4. Set Safari → Settings → General → **New tabs open with** to *AMOLED New Tab*.
+
 ### Mobile
 
 - **Extension**: in Kiwi or Lemur (Android) or Orion (iOS), open Extensions, enable Developer mode, and load the folder or a zip of it.
